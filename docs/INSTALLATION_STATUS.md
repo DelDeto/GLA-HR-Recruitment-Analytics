@@ -1,32 +1,32 @@
-# GLA HR Meta Ads → Google Sheets — production status
+# GLA HR Meta Ads → Google Sheets — release V1.1 status
 
-Last verified: **2026-11-11**. Public GitHub repository. No credentials or candidate PII are committed.
+Last verified: **2026-11-11 21:05 ICT**. Public GitHub repository; business data and credentials remain in the private destination Sheet and GitHub Actions Secrets.
 
-## Production running
-- Daily-sync workflow: [`.github/workflows/meta-ads-sync.yml`](../.github/workflows/meta-ads-sync.yml); schedule `15 0 * * *` (approximately **07:15 Vietnam time**, scheduler may delay).
-- Four GitHub Actions Secrets tested successfully by read-only connection check.
-- Google Sheets V5.0: `META_RAW` A:I, 6,000-row grid, 410 historical rows (source account tagged), dependent dashboard formulas extended.
-- **Initial production sync succeeded**: [GitHub Actions run 43012260436](https://github.com/DelDeto/GLA-HR-Recruitment-Analytics/actions/runs/43012260436).
-  - 16 unit tests passed
-  - 115 campaign/day rows fetched from Meta Marketing API
-  - 19 existing rows updated
-  - 0 appended, 0 newly mapped campaigns
-  - `dry_run=False`; writes to Google Sheets succeeded
-- Post-run sheet verified: dashboard total Meta spend and reported lead count refreshed; lead and candidate source data preserved.
-- One-time bootstrap production workflow was removed after its successful run to prevent redundant execution.
+## Deployed to `main`
+- V1.1 [pull request #1](https://github.com/DelDeto/GLA-HR-Recruitment-Analytics/pull/1) merged successfully.
+- **27/27** unit tests passed.
+- Existing five-attempt Meta API retry on transient errors remains active.
+- Additional scheduled primary/recovery scans at **07:15 / 07:25 / 07:45 / 08:15 ICT**.
+- Independent watchdog workflow at **09:10 / 12:10 ICT**; verifies successful private daily checkpoint and attempts controlled recovery only when missing.
+- All scheduled workflows share a concurrency group with `queue: max` and `cancel-in-progress: false` to avoid overlapping Google Sheet writes.
+- Backfill dynamically expands from 8 days to include the gap since the last success (max 90 days), and fails rather than silently omitting periods longer than 90 days.
+- Added private Google Sheets tab `META_SYNC_HEALTH` with header A:I for successful checkpoints. The checkpoint is written only after the raw ads and mapping writes succeed.
 
-## Verification records
-- Read-only dry run: [43011673424](https://github.com/DelDeto/GLA-HR-Recruitment-Analytics/actions/runs/43011673424), success, fetched 115 / would update 19 / appended 0.
-- Initial production: [43012260436](https://github.com/DelDeto/GLA-HR-Recruitment-Analytics/actions/runs/43012260436), success, fetched 115 / actually updated 19 / appended 0.
+## Verified live acceptance
+[GitHub Actions production acceptance run 43035037675](https://github.com/DelDeto/GLA-HR-Recruitment-Analytics/actions/runs/43035037675):
+- Meta Marketing API fetched **115** campaign/day rows.
+- Google Sheets production upsert changed **18** rows, added **0**.
+- The private status tab has an entry `2026-11-11 | SUCCESS | 115 fetched | 18 changed | manual` at **21:05:10 ICT**.
+- The immediate watchdog-style check read that checkpoint, logged **"Recovery not required"**, and made **no redundant Meta scan**.
+- One-time acceptance workflow was removed after successful verification; permanent daily and watchdog workflows remain.
 
-## Automated schedule status
-GitHub workflow is configured for the next scheduled run, but **the first scheduled execution itself has not yet occurred/been verified**. Review GitHub Actions after the next scheduled window. A failed run must be investigated; do not assume it self-healed.
-
-## Maintenance
-- Manual re-run: **Actions → GLA HR — Meta Ads daily sync → Run workflow → days=8, dry_run=false**.
-- Safe preview: use the same menu with `dry_run=true`.
-- Monitoring: watch workflow status and compare latest Meta day on `DASHBOARD_360`; the workflow does not independently notify Telegram.
-- No personal lead/worker records, instant form contacts, invoices, or payout-status data flow through this pipeline.
+## Caveats and monitoring
+- **Automatic scheduled retries and missing-checkpoint recovery have been configured and unit tested; no real scheduled failure/recovery event has yet been observed.**
+- GitHub scheduled jobs may run late or be dropped; public-repo schedules may be disabled after 60 days of inactivity.
+- Permanent problems (expired/revoked Meta token, removed Google Sheet access, API policy, invalid schema, quota, currency mismatch, outages >90d) will result in failed GitHub Actions runs and require review.
+- Manual production run: `Actions → GLA HR — Meta Ads daily sync V1.1 → Run workflow` with `dry_run=false`.
+- Manual preview run: same workflow with `dry_run=true`.
+- Failure visibility: GitHub Actions run history. **No independent Telegram failure alerts** are configured.
 
 ## Security
-Secrets must only remain in GitHub repository Secrets: `META_ACCESS_TOKEN`, `META_AD_ACCOUNT_IDS`, `GOOGLE_SERVICE_ACCOUNT_JSON`, `GOOGLE_SHEET_ID`. This repository is **public**. Review code and workflow modifications before merging; users with default-branch write access can potentially access secrets through altered workflows.
+`META_ACCESS_TOKEN`, `META_AD_ACCOUNT_IDS`, `GOOGLE_SERVICE_ACCOUNT_JSON`, and `GOOGLE_SHEET_ID` remain in GitHub Secrets. Never commit them or lead identities to this public repository. Review default-branch code/workflow edits because a malicious change to a workflow could gain access to secrets.
