@@ -1,15 +1,31 @@
-# Deployment status
+# GLA HR Meta Ads → Google Sheets — installation status
 
-## Completed
-- Prepared public-safe GitHub Actions source and CI tests.
-- Destination Sheet bootstrap already performed: nine-column `META_RAW`, 410 historical rows labeled with source account, 6000-row capacity, 202 dependent formulas updated.
-- Prior dashboard KPI values verified unchanged.
+Last verified: **2026-11-11**. Public GitHub repository. Never commit credentials or candidate data.
 
-## Still required (do not claim production live)
-1. Push project source to the existing public repository.
-2. Add four Actions Secrets: `META_ACCESS_TOKEN`, `META_AD_ACCOUNT_IDS`, `GOOGLE_SERVICE_ACCOUNT_JSON`, `GOOGLE_SHEET_ID`.
-3. Ensure Google Cloud service account has Editor permission on the intended spreadsheet and the Sheets API is enabled.
-4. Run manual dry-run to verify live Meta/Google access, then actual run with `dry_run=false`.
-5. Scheduled production starts after all configuration is valid.
+## Completed and verified
+- Source code, unit tests, and daily-sync workflow committed to `main`.
+- `META_RAW` prepared with columns A:I, historic rows labeled with source ad account, 6,000-row capacity; dependent formulas expanded.
+- Four GitHub Actions repository Secrets have been **validated by successful workflow execution**. Secret values are not readable from this repository.
+- Added the dedicated **read-only** workflow `.github/workflows/connection-check.yml`.
+- [Live dry-run success — run 43011673424](https://github.com/DelDeto/GLA-HR-Recruitment-Analytics/actions/runs/43011673424):
+  - `fetched=115` Meta campaign/day rows
+  - `changed=19` Google Sheet rows **would** be updated
+  - `appended=0`
+  - `new_campaigns=0`
+  - **NO production writes** were made (dry-run mode).
 
-No personal candidate data or secret values may be committed or printed in logs.
+## Next step: first production run (not yet performed)
+Go to **Actions → GLA HR — Meta Ads daily sync → Run workflow**, set `days=8` and uncheck `dry_run` (set to **false**). The workflow is configured to sync only `META_RAW` and campaign-mapping data. Verify results in the Sheet and check run logs after completion.
+
+## Automatic schedule
+The production workflow in `.github/workflows/meta-ads-sync.yml` is configured with `cron: '15 0 * * *'`, i.e. **07:15 Asia/Ho_Chi_Minh** daily. GitHub scheduled start times may be delayed. First scheduled production execution has **not** been verified yet.
+
+## Secrets and security
+- `META_ACCESS_TOKEN` and `META_AD_ACCOUNT_IDS` — read-only Meta Ads access
+- `GOOGLE_SERVICE_ACCOUNT_JSON` — credentials for a narrowly scoped Google service account
+- `GOOGLE_SHEET_ID` — target workbook
+- Do not paste credentials into issues, pull requests, logs, code, Google Sheets, or chat.
+- Public repositories still require vigilant code review: changes merged to the default branch can influence workflow behavior and credential access.
+
+## Scope
+Only aggregated campaign/day Meta metrics are synchronized. No personal lead/worker records, instant-form submissions, invoices, or payout status are transmitted through this pipeline.
