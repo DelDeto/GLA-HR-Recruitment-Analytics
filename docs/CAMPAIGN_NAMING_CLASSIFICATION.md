@@ -33,3 +33,14 @@ The priority matters: `IDL - SV` and `IDL - Fresher` must never be grouped into 
 - New M column in `META_ADS_NGAY`.
 - New `CHI_PHI_ADS_NHOM` live report.
 - Existing 32 campaign mappings classified without modifying factory-mapping column C.
+
+## Weekly accounting rule (approved by GLA HR on 2026-11-11)
+
+- **One reporting week is Sunday 00:00 through Saturday 23:59:59, Asia/Ho_Chi_Minh (UTC+7); 7 calendar days inclusive.**
+- The private native Google Sheet tab `BAO_CAO_ADS_TUAN` uses `=TODAY()-WEEKDAY(TODAY(),1)-6` for the Sunday of the **most recently completed** week, and adds 6 days for Saturday. This is an automatically moving weekly report, not a Monday→Sunday report.
+- Current (incomplete) week is displayed separately and explicitly labeled as incomplete.
+- For completed weeks, report **LĐPT by factory** and the three **IDL recruitment types** (Engineers, Students/Interns, Fresh Graduates/Talent Pipeline). Unmapped factories remain flagged without discarding or reassigning spend.
+- `DASHBOARD_360` includes a compact last-completed-week summary and links to the weekly report. `CHI_PHI_ADS_NHOM` remains a **separate rolling 30-day view**, clearly labeled. No underlying daily Meta API schedule or source data was altered by this reporting change.
+- `BAO_CAO_ADS_TUAN` retains a 12-week trend and marks earlier dates falling outside the source-data coverage as incomplete. Only fully covered weeks are appropriate for week-over-week comparisons.
+- Last-completed-week report on 11 Nov 2026: **01–07 Nov 2026**, 14,597,362 VND and 156 Meta-reported leads; spending by group sums to the same total, zero unreconciled cost.
+- A one-time independent Windsor.ai comparison on 11 Nov 2026 matched all **98 campaign/day** keys on spend, leads, impressions, and clicks for 01–07 Nov. This is **not** an automatically recurring Windsor comparison; daily scanner still reads Meta directly.
