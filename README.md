@@ -34,3 +34,14 @@ pytest -q
 ```
 
 See `docs/GOOGLE_SHEET_INTEGRATION.md` for schema and `docs/INSTALLATION_STATUS.md` for deployment status.
+## V1.1 – automatic recovery and independent watchdog
+
+V1.1 adds the private **`META_SYNC_HEALTH`** tab in the destination Google Sheet (not this public repo), with one SUCCESS checkpoint per Vietnam calendar day and account scope. The checkpoint is written **only after** the ads upsert and campaign-mapping updates succeed. If any earlier step fails, retries may safely execute the same idempotent upsert again.
+
+- **07:15 ICT:** primary daily scan (Meta API already includes up to five HTTP retries on transient failures).
+- **07:25, 07:45, 08:15 ICT:** independent scheduled retry opportunities; skip if today's SUCCESS checkpoint already exists.
+- **09:10, 12:10 ICT:** separate watchdog workflow verifies the checkpoint and attempts the same safe backfill if missing. An unresolved failure appears as a failed GitHub Actions run.
+- Normally refreshes the latest **8 days**. If an earlier SUCCESS checkpoint shows several missed days, catch-up expands to cover the entire gap (up to 90 days). Gaps beyond 90 days fail explicitly rather than silently discarding history.
+- **No additional GitHub Secrets required.** Manual `workflow_dispatch` in the daily workflow still supports `dry_run=true` or `false`.
+
+GitHub schedules are **best effort**, not an SLA: delayed/dropped schedules are possible, and public-repo schedules can be disabled after 60 days without activity. Recovery cannot fix revoked tokens, revoked Google permissions, invalid currency, spreadsheet schema errors or quota restrictions. It never assumes the absence of new daily ads rows is itself an API failure when historical Meta data is returned.
