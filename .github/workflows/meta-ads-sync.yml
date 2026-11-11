@@ -1,4 +1,4 @@
-name: GLA HR — Meta Ads daily sync
+name: GLA HR — Meta Ads daily sync V1.1
 
 on:
   workflow_dispatch:
@@ -13,7 +13,10 @@ on:
         type: boolean
         default: true
   schedule:
-    - cron: '15 0 * * *' # 07:15 Asia/Ho_Chi_Minh (UTC+7)
+    - cron: '15 0 * * *' # primary: 07:15 ICT
+    - cron: '25 0 * * *' # automatic retry: 07:25 ICT
+    - cron: '45 0 * * *' # automatic retry: 07:45 ICT
+    - cron: '15 1 * * *' # automatic retry: 08:15 ICT
 
 permissions:
   contents: read
@@ -21,6 +24,7 @@ permissions:
 concurrency:
   group: gla-meta-ads-daily-sync
   cancel-in-progress: false
+  queue: max
 
 jobs:
   sync:
@@ -35,6 +39,7 @@ jobs:
       META_SYNC_DAYS: 8
       RUN_DAYS: ${{ inputs.days || '8' }}
       RUN_DRY_RUN: ${{ inputs.dry_run || false }}
+      SCHEDULE_CRON: ${{ github.event.schedule || '' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -67,4 +72,13 @@ jobs:
           if ! [[ "$RUN_DAYS" =~ ^[0-9]+$ ]]; then echo 'Days must be numeric' >&2; exit 1; fi
           ARGS=(--days "$RUN_DAYS")
           if [ "$RUN_DRY_RUN" = 'true' ]; then ARGS+=(--dry-run); fi
+          if [ "$GITHUB_EVENT_NAME" = 'schedule' ]; then
+            if [ "$SCHEDULE_CRON" = '15 0 * * *' ]; then
+              ARGS+=(--run-kind daily)
+            else
+              ARGS+=(--skip-if-synced --run-kind retry)
+            fi
+          else
+            ARGS+=(--run-kind manual)
+          fi
           python -m src.meta_sync "${ARGS[@]}"
