@@ -1,0 +1,70 @@
+name: GLA HR — Meta Ads daily sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'How many days to refresh (1–90)'
+        required: true
+        default: '8'
+        type: string
+      dry_run:
+        description: 'Read and compare, do not change Google Sheets'
+        type: boolean
+        default: true
+  schedule:
+    - cron: '15 0 * * *' # 07:15 Asia/Ho_Chi_Minh (UTC+7)
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gla-meta-ads-daily-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+      META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+      GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+      META_AD_ACCOUNT_IDS: ${{ secrets.META_AD_ACCOUNT_IDS }}
+      META_API_VERSION: v27.0
+      META_SYNC_DAYS: 8
+      RUN_DAYS: ${{ inputs.days || '8' }}
+      RUN_DRY_RUN: ${{ inputs.dry_run || false }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install requirements
+        run: pip install -r requirements.txt
+      - name: Unit tests (no Meta/Google calls)
+        run: pytest -q
+      - name: Check required secrets
+        run: |
+          if [ -z "$META_ACCESS_TOKEN" ]; then
+            echo 'Missing GitHub Actions Secret META_ACCESS_TOKEN' >&2; exit 1
+          fi
+          if [ -z "$GOOGLE_SERVICE_ACCOUNT_JSON" ]; then
+            echo 'Missing GitHub Actions Secret GOOGLE_SERVICE_ACCOUNT_JSON' >&2; exit 1
+          fi
+          if [ -z "$GOOGLE_SHEET_ID" ]; then
+            echo 'Missing GitHub Actions Secret GOOGLE_SHEET_ID' >&2; exit 1
+          fi
+          if [ -z "$META_AD_ACCOUNT_IDS" ]; then
+            echo 'Missing GitHub Actions Secret META_AD_ACCOUNT_IDS' >&2; exit 1
+          fi
+      - name: Direct Meta API to Google Sheet
+        shell: bash
+        run: |
+          if ! [[ "$RUN_DAYS" =~ ^[0-9]+$ ]]; then echo 'Days must be numeric' >&2; exit 1; fi
+          ARGS=(--days "$RUN_DAYS")
+          if [ "$RUN_DRY_RUN" = 'true' ]; then ARGS+=(--dry-run); fi
+          python -m src.meta_sync "${ARGS[@]}"
