@@ -1,0 +1,80 @@
+name: GLA HR — One-time read-only Nov 02–08 Meta reconciliation
+
+on:
+  push:
+    paths:
+      - '.github/workflows/verify-windsor-week-2026-11-02.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    if: "${{ github.event.head_commit.message == 'audit: independently verify 2026-11-02 to 2026-11-08' }}"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+      META_AD_ACCOUNT_IDS: ${{ secrets.META_AD_ACCOUNT_IDS }}
+      GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+      GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+      META_API_VERSION: v27.0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements.txt
+      - name: Compare live Meta rows to stored Windsor snapshot (READ ONLY)
+        shell: bash
+        run: |
+          python - <<'PY'
+          from datetime import date
+          import os
+          from src.meta_sync import MetaClient, GoogleSheets, iso_date, parse_accounts, record_key
+
+          accounts = parse_accounts(os.environ.get("META_AD_ACCOUNT_IDS"))
+          if len(accounts) != 1:
+              raise SystemExit("Audit requires exactly one configured ad account; no writes performed")
+          account = accounts[0]
+          meta = MetaClient(os.environ["META_ACCESS_TOKEN"], os.environ["META_API_VERSION"])
+          google = GoogleSheets(os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"], os.environ["GOOGLE_SHEET_ID"])
+          assert meta.currency(account) == "VND"
+          start, end = date(2026, 11, 2), date(2026, 11, 8)
+          direct = meta.insights(account, start, end, "VND")
+          source = google.read("META_RAW", "A1:I6000")[1:]
+          source = [row for row in source if len(row) > 1 and row[0] and row[1] and start.isoformat() <= iso_date(row[0]) <= end.isoformat()]
+          if not source or not direct:
+              raise SystemExit("Audit data missing; no writes performed")
+          def normalized(row):
+              return (
+                  round(float(row[3]), 2),
+                  int(float(row[4])),
+                  int(float(row[5])),
+                  int(float(row[6])),
+              )
+          def keyed(rows):
+              result = {}
+              for row in rows:
+                  key = record_key(row, account)
+                  if key in result:
+                      raise SystemExit("Duplicate audit key detected; no writes performed")
+                  result[key] = normalized(row)
+              return result
+          direct_map, stored_map = keyed(direct), keyed(source)
+          all_keys = set(direct_map) | set(stored_map)
+          shared = set(direct_map) & set(stored_map)
+          mismatched = sum(direct_map[k] != stored_map[k] for k in shared)
+          missing_meta = len(set(stored_map)-set(direct_map))
+          missing_store = len(set(direct_map)-set(stored_map))
+          # Never print individual ad accounts, campaigns, credentials or monetary values to public Actions logs.
+          print(f"Audit date range: {start.isoformat()} to {end.isoformat()}")
+          print(f"Live Meta rows: {len(direct_map)}; stored sheet rows: {len(stored_map)}")
+          print(f"Shared date+campaign+account keys: {len(shared)}")
+          print(f"Metric mismatches (spend, impressions, clicks, leads): {mismatched}")
+          print(f"Stored rows absent from direct API: {missing_meta}")
+          print(f"Direct API rows absent from stored sheet: {missing_store}")
+          if mismatched or missing_meta or missing_store:
+              raise SystemExit("Read-only audit found discrepancies")
+          print("VERIFIED: ALL CAMPAIGN/DAY RECORDS MATCH EXACTLY")
+          PY
