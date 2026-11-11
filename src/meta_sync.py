@@ -23,6 +23,8 @@ import requests
 LOGGER = logging.getLogger("gla_meta_sync")
 RAW_TAB = "META_RAW"
 CAMPAIGN_TAB = "CHIEN_DICH_META"
+HEALTH_TAB = "META_SYNC_HEALTH"
+HEALTH_COLS = ["run_date_ict","account_ids","finished_at_ict","status","fetched","changed","appended","new_campaigns","run_type"]
 RAW_COLS = ["date", "campaign_id", "campaign", "spend", "impressions", "clicks", "actions_lead", "account_currency", "ad_account_id"]
 BASE_URL = "https://sheets.googleapis.com/v4/spreadsheets"
 PERMISSIONS = ["https://www.googleapis.com/auth/spreadsheets"]
@@ -158,6 +160,8 @@ class Settings:
     api_version: str
     refresh_days: int
     dry_run: bool
+    skip_if_synced: bool = False
+    run_kind: str = "manual"
 
     @classmethod
     def from_env(cls, args: argparse.Namespace) -> "Settings":
@@ -177,7 +181,8 @@ class Settings:
         if not 1 <= days <= 90:
             raise SyncError("--days must be between 1 and 90")
         return cls(tok, cred, sheet_id,
-                   parse_accounts(os.environ.get("META_AD_ACCOUNT_IDS")), api, days, args.dry_run)
+                   parse_accounts(os.environ.get("META_AD_ACCOUNT_IDS")), api, days, args.dry_run,
+                   getattr(args, "skip_if_synced", False), getattr(args, "run_kind", "manual"))
 
 
 class MetaClient:
@@ -341,6 +346,54 @@ def campaign_updates(existing: list[list[object]], incoming: list[list[object]],
     return [(f"'{CAMPAIGN_TAB}'!A{last+1}:G{last+len(batch)}",batch)]
 
 
+
+def account_signature(accounts: list[str]) -> str:
+    """Stable grouping; account identifiers are only stored privately in Sheets."""
+    return ",".join(sorted(set(accounts)))
+
+
+def successful_dates(health_rows: list[list[object]], accounts: list[str]) -> list[date]:
+    """Only fully completed writes count as healthy. Missing/invalid dates fail closed."""
+    signature = account_signature(accounts)
+    found: list[date] = []
+    for row in health_rows[1:]:
+        if len(row) < 4 or str(row[1]) != signature or str(row[3]) != "SUCCESS":
+            continue
+        try:
+            found.append(date.fromisoformat(str(row[0])[:10]))
+        except ValueError as exc:
+            raise SyncError("Invalid date in META_SYNC_HEALTH status log") from exc
+    return found
+
+
+def health_target_row(health_rows: list[list[object]], on_date: date,
+                      accounts: list[str], max_row: int) -> int:
+    """Find today's status row or an unused row; never overwrite a different day/account."""
+    signature = account_signature(accounts)
+    tail = 1
+    matching: list[int] = []
+    for physical, row in enumerate(health_rows[1:], start=2):
+        if not row or not row[0]:
+            continue
+        tail = max(tail, physical)
+        if str(row[0])[:10] == on_date.isoformat() and len(row) >= 2 and str(row[1]) == signature:
+            matching.append(physical)
+    if len(matching) > 1:
+        raise SyncError("Duplicate META_SYNC_HEALTH status keys; manual audit needed")
+    target = matching[0] if matching else tail + 1
+    if target > max_row:
+        raise SyncError("META_SYNC_HEALTH capacity exceeded; no data writes made")
+    return target
+
+
+def lookback_days(today: date, base_days: int, latest_success: date | None) -> int:
+    """Catch up after downtime, but never silently truncate a >90-day gap."""
+    required = base_days if latest_success is None else max(base_days, (today - latest_success).days + 1)
+    if required > 90:
+        raise SyncError("Synchronization gap exceeds 90 days; guided historical backfill required")
+    return required
+
+
 def sync(settings: Settings, meta: MetaClient | None = None, sheets: GoogleSheets | None = None) -> dict[str, Any]:
     api = meta or MetaClient(settings.access_token, settings.api_version)
     sheet = sheets or GoogleSheets(settings.google_json, settings.spreadsheet_id)
@@ -358,8 +411,24 @@ def sync(settings: Settings, meta: MetaClient | None = None, sheets: GoogleSheet
         raise SyncError("Legacy META_RAW rows without account_id; multi-account sync blocked")
     campaigns_max, _ = sheet.capacity(CAMPAIGN_TAB)
     mapped = sheet.read(CAMPAIGN_TAB, f"A2:G{campaigns_max}")
+    health_max, health_cols = sheet.capacity(HEALTH_TAB)
+    if health_cols < len(HEALTH_COLS):
+        raise SyncError("META_SYNC_HEALTH needs 9 columns")
+    health = sheet.read(HEALTH_TAB, f"A1:I{health_max}")
+    if not health or health[0][:len(HEALTH_COLS)] != HEALTH_COLS:
+        raise SyncError("Unexpected META_SYNC_HEALTH headers; refusing to write")
     today = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).date()
-    begin = today - timedelta(days=settings.refresh_days - 1)
+    successes = successful_dates(health, settings.accounts)
+    if settings.skip_if_synced and today in successes:
+        result = {"dry_run": settings.dry_run, "skipped": True, "fetched": 0, "changed": 0,
+                  "appended": 0, "new_campaigns": 0, "reason": "Already synced today"}
+        LOGGER.info("Recovery not required; today's successful checkpoint exists")
+        return result
+    previous = max((d for d in successes if d < today), default=None)
+    effective_days = lookback_days(today, settings.refresh_days, previous)
+    begin = today - timedelta(days=effective_days - 1)
+    status_target = health_target_row(health, today, settings.accounts, health_max)
+    LOGGER.info("Meta scan window: %d days (rolling backfill enabled)", effective_days)
     fresh: list[list[object]] = []
     for account in settings.accounts:
         currency = api.currency(account)
@@ -384,6 +453,13 @@ def sync(settings: Settings, meta: MetaClient | None = None, sheets: GoogleSheet
     sheet.write_ranges(changes)
     if camp_changes:
         sheet.write_ranges(camp_changes, mode="USER_ENTERED")
+    # This is the commit marker. If any write above fails, no SUCCESS is recorded;
+    # the independent retry/watchdog will safely upsert again on a later run.
+    finished_at = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).strftime("%Y-%m-%d %H:%M:%S")
+    health_record = [today.isoformat(), account_signature(settings.accounts), finished_at,
+                     "SUCCESS", len(fresh), len(proposed), appended,
+                     sum(len(rows) for _, rows in camp_changes), settings.run_kind]
+    sheet.write_ranges([(f"'{HEALTH_TAB}'!A{status_target}:I{status_target}", [health_record])])
     result = {"dry_run": False, "fetched": len(fresh), "changed": len(proposed),
               "appended": appended, "new_campaigns": sum(len(rows) for _, rows in camp_changes)}
     LOGGER.info("Meta sync completed: %s", result)
@@ -395,6 +471,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="GLA HR Meta Ads API -> Sheets V5.0")
     parser.add_argument("--days", type=int, default=int(os.environ.get("META_SYNC_DAYS", "8")))
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--skip-if-synced", action="store_true")
+    parser.add_argument("--run-kind", choices=("manual", "daily", "retry", "watchdog"), default="manual")
     args = parser.parse_args()
     try:
         settings = Settings.from_env(args)
