@@ -1,0 +1,23 @@
+# Google Sheets integration contract (internal ID intentionally withheld)
+
+Provide the actual spreadsheet ID via GitHub Actions secret `GOOGLE_SHEET_ID`.
+
+Columns of `META_RAW` must remain:
+
+| Column | Field | Data type |
+|---|---|---|
+| A | date | Google Sheets date serial |
+| B | campaign_id | text |
+| C | campaign | text |
+| D | spend | numeric VND |
+| E | impressions | integer |
+| F | clicks | integer |
+| G | actions_lead | Meta ad-reported lead metric |
+| H | account_currency | `VND` |
+| I | ad_account_id | text |
+
+Dashboard formulas read through `META_ADS_NGAY`; source data belongs in `META_RAW`. The script does not touch employee/ATS or payment data. It can add new campaign metadata in `CHIEN_DICH_META` but deliberately leaves most factory mapping unresolved.
+
+Destination workbook was prepared 11 November 2026: 410 existing snapshot rows backfilled with their account ID, `META_RAW` expanded to 6000 rows, `META_ADS_NGAY` to 6002, and 202 dependent formulas updated. The capacity guard requires manual expansion once those limits are reached.
+
+**Do not add API tokens or Google credentials to any Sheet cell.**
