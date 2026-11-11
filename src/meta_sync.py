@@ -334,13 +334,15 @@ def campaign_updates(existing: list[list[object]], incoming: list[list[object]],
     last = max((i for i, r in enumerate(existing, start=2) if r and r[0]), default=1)
     if last + len(new) > max_row:
         raise SyncError("CHIEN_DICH_META is full; no writes made")
+    # Update A:G only. Columns H:J are controlled by native Google Sheets
+    # automatic recruitment-type classification + manual correction.
     batch=[]
     for i,(id_,name) in enumerate(sorted(new.items()), start=last+1):
         # Mapping intentionally does not silently auto-assign an ambiguous factory.
         factory = "Pegatron" if re.search(r"\bpegatron\b", name, re.I) else "CHƯA GÁN"
         batch.append(["'" + id_, name, factory,
-                      f'=SUMIF(META_RAW!$B$2:$B$6000,A{i},META_RAW!$D$2:$D$6000)',
-                      f'=SUMIF(META_RAW!$B$2:$B$6000,A{i},META_RAW!$G$2:$G$6000)',
+                      f'=SUMIFS(META_RAW!$D$2:$D$6000,META_RAW!$B$2:$B$6000,A{i},META_RAW!$A$2:$A$6000,">="&TODAY()-29,META_RAW!$A$2:$A$6000,"<="&TODAY())',
+                      f'=SUMIFS(META_RAW!$G$2:$G$6000,META_RAW!$B$2:$B$6000,A{i},META_RAW!$A$2:$A$6000,">="&TODAY()-29,META_RAW!$A$2:$A$6000,"<="&TODAY())',
                       "RÕ" if factory=="Pegatron" else "CẦN XÁC MINH",
                       "Meta API discovered; review factory mapping before attributing cost"])
     return [(f"'{CAMPAIGN_TAB}'!A{last+1}:G{last+len(batch)}",batch)]
