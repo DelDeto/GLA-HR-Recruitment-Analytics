@@ -30,3 +30,12 @@ Last verified: **2026-11-11 21:05 ICT**. Public GitHub repository; business data
 
 ## Security
 `META_ACCESS_TOKEN`, `META_AD_ACCOUNT_IDS`, `GOOGLE_SERVICE_ACCOUNT_JSON`, and `GOOGLE_SHEET_ID` remain in GitHub Secrets. Never commit them or lead identities to this public repository. Review default-branch code/workflow edits because a malicious change to a workflow could gain access to secrets.
+
+## Ads-only working Sheet reset — verified 11 Nov 2026
+
+- Made a complete native Google Sheets backup (19 tabs) into the same user's Google Drive folder before any deletion; the backup remains a distinct, private historical copy.
+- Working spreadsheet **kept the same file ID and service-account sharing scope** and was renamed to `GLA HR | Theo dõi chi phí Ads – V1.0 (CN–T7)`.
+- Deleted 12 non-Ads tabs: `DASHBOARD_360`, `LEAD_PIPELINE`, `NHA_MAY_DON_GIA`, `DOANH_THU_NGAY`, `OVERVIEW_UNG_VIEN`, `TONG_QUAN`, `UNG_VIEN`, `CONG_PEGATRON`, `MOC_THUONG`, `DI_THUONG`, `HUONG_DAN`, `DOI_SOAT_NGUON`.
+- Preserved exactly seven ads-related tabs: `BAO_CAO_ADS_TUAN`, `CHI_PHI_ADS_NHOM`, `META_ADS_NGAY`, `CHIEN_DICH_META`, `META_RAW`, `META_SYNC_HEALTH`, and `HUONG_DAN_ADS` (formerly `THIET_LAP_API`, rewritten to ads-only documentation).
+- Post-cleanup verified: week 01–07 Nov 2026 = **14,597,362 VND** / **156 leads**, group reconciliation **0 VND**; rolling 30-day = **70,300,139 VND** / **707 leads**; `META_RAW` 9-column schema intact; `META_SYNC_HEALTH` SUCCESS checkpoint intact; no formula errors in sampled report/sync ranges.
+- GitHub Actions source code references only its preserved ads data/mapping/checkpoint tabs. **This is structural verification, not proof that a future scheduled GitHub Actions run will succeed**; monitor the next scheduled run to confirm.
