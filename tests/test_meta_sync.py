@@ -91,6 +91,10 @@ def test_new_campaign_keeps_campaign_id_as_text():
         assert str(r[0]).startswith("'120253")  # preserved text via USER_ENTERED
     assert any(r[2] == "CHƯA GÁN" for r in rows)
     assert any(r[2] == "Pegatron" for r in rows)
+    assert all(len(row) == 7 for row in rows)  # Google Sheets owns columns H:J
+    assert all("SUMIFS(" in row[3] and "TODAY()-29" in row[3] for row in rows)
+    assert all("SUMIFS(" in row[4] and "TODAY()-29" in row[4] for row in rows)
+    assert all("META_RAW!$A$2:$A$6000" in row[3] for row in rows)
 
 
 class FakeMeta:
