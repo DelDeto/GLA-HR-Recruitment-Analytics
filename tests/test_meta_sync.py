@@ -1,4 +1,5 @@
-from datetime import date
+from datetime import date, timedelta, datetime
+from zoneinfo import ZoneInfo
 from argparse import Namespace
 from dataclasses import replace
 
@@ -8,7 +9,8 @@ from src.meta_sync import (
     GoogleSheets, MetaClient, Settings, SyncError,
     campaign_updates, google_serial, group_changes, iso_date,
     normalize_id, parse_accounts, parse_meta_leads, parse_meta_result,
-    plan_upserts, record_key, sync,
+    plan_upserts, record_key, sync, account_signature, successful_dates,
+    health_target_row, lookback_days, HEALTH_COLS,
 )
 
 
@@ -100,12 +102,15 @@ class FakeMeta:
 class FakeSheets:
     def __init__(self):
         self.changes = []
+        self.health = [HEALTH_COLS]
     def capacity(self, name):
-        return {"META_RAW":(1600,9),"META_ADS_NGAY":(1700,12),"CHIEN_DICH_META":(180,7)}[name]
+        return {"META_RAW":(1600,9),"META_ADS_NGAY":(1700,12),
+                "CHIEN_DICH_META":(180,7),"META_SYNC_HEALTH":(1200,9)}[name]
     def read(self, tab, a1):
         return {
             "META_RAW": [["date", "campaign_id", "campaign", "spend", "impressions", "clicks", "actions_lead", "account_currency", "ad_account_id"]],
             "CHIEN_DICH_META": [],
+            "META_SYNC_HEALTH": self.health,
         }[tab]
     def write_ranges(self, changes, mode="RAW"):
         self.changes.append((mode, changes))
@@ -128,11 +133,14 @@ def test_actual_upsert_stays_scoped_to_raw_and_mapping_only():
     sheet=FakeSheets()
     result=sync(make_settings(False),FakeMeta(),sheet)
     assert result["appended"] == 1
-    assert len(sheet.changes) == 2
+    assert len(sheet.changes) == 3
     assert sheet.changes[0][0] == "RAW"
     assert sheet.changes[0][1][0][0] == "'META_RAW'!I1"
     assert sheet.changes[1][0] == "USER_ENTERED"
     assert sheet.changes[1][1][0][0] == "'CHIEN_DICH_META'!A2:G2"
+    assert sheet.changes[2][0] == "RAW"
+    assert sheet.changes[2][1][0][0] == "'META_SYNC_HEALTH'!A2:I2"
+    assert sheet.changes[2][1][0][1][0][3] == "SUCCESS"
 
 
 def test_api_error_never_includes_secret():
@@ -200,3 +208,106 @@ def test_meta_token_only_in_authorization_header():
     assert "secret-token-123" not in url
     assert "secret-token-123" not in str(args["params"])
     assert args["headers"]["Authorization"] == "Bearer secret-token-123"
+
+
+
+def test_account_signature_stable_for_retry_scope():
+    assert account_signature(["456", "123", "456"]) == "123,456"
+
+
+def test_health_success_detected_for_same_accounts_only():
+    today = date(2026, 11, 11)
+    rows = [HEALTH_COLS,
+            [today.isoformat(), "123,456", "2026-11-11 07:15:00", "SUCCESS", 3, 2, 1, 0, "daily"],
+            [today.isoformat(), "999", "2026-11-11 07:15:00", "FAILED", 0, 0, 0, 0, "retry"]]
+    assert successful_dates(rows, ["456", "123"]) == [today]
+    assert successful_dates(rows, ["999"]) == []
+
+
+def test_health_row_upsert_and_safe_capacity():
+    today = date(2026, 11, 11)
+    rows = [HEALTH_COLS, [today.isoformat(), "999001", "stamp", "SUCCESS"]]
+    assert health_target_row(rows, today, ["999001"], 1200) == 2
+    assert health_target_row(rows, today, ["123"], 1200) == 3
+    with pytest.raises(SyncError, match="capacity exceeded"):
+        health_target_row(rows, today, ["123"], 2)
+
+
+def test_duplicate_checkpoint_fails_closed():
+    today = date(2026, 11, 11)
+    rows = [HEALTH_COLS, [today.isoformat(), "999001", "stamp", "SUCCESS"],
+            [today.isoformat(), "999001", "stamp", "SUCCESS"]]
+    with pytest.raises(SyncError, match="Duplicate"):
+        health_target_row(rows, today, ["999001"], 1200)
+
+
+def test_backfill_expands_for_outage_and_refuses_unbounded_gap():
+    today = date(2026, 11, 11)
+    assert lookback_days(today, 8, today - timedelta(days=1)) == 8
+    assert lookback_days(today, 8, today - timedelta(days=20)) == 21
+    assert lookback_days(today, 8, None) == 8
+    with pytest.raises(SyncError, match="exceeds 90 days"):
+        lookback_days(today, 8, today - timedelta(days=92))
+
+
+def test_retry_skips_when_today_successful():
+    sheet = FakeSheets()
+    today = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).date()
+    sheet.health.append([today.isoformat(), DEFAULT_ACCOUNT, "stamp", "SUCCESS"])
+    result = sync(replace(make_settings(False), skip_if_synced=True), FakeMeta(), sheet)
+    assert result["skipped"] is True
+    assert result["changed"] == 0
+    assert sheet.changes == []
+
+
+def test_gap_backfill_expands_actual_meta_query():
+    sheet = FakeSheets()
+    today = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).date()
+    sheet.health.append([(today - timedelta(days=15)).isoformat(), DEFAULT_ACCOUNT, "stamp", "SUCCESS"])
+    class TrackingMeta(FakeMeta):
+        def insights(self, account, begin, end, currency):
+            assert begin == today - timedelta(days=15)
+            return super().insights(account, begin, end, currency)
+    result = sync(make_settings(True), TrackingMeta(), sheet)
+    assert result["fetched"] == 1
+    assert sheet.changes == []
+
+
+def test_failed_meta_does_not_write_checkpoint():
+    sheet = FakeSheets()
+    class FailedMeta(FakeMeta):
+        def insights(self, *args):
+            raise SyncError("Temporary Meta failure")
+    with pytest.raises(SyncError, match="Temporary"):
+        sync(make_settings(False), FailedMeta(), sheet)
+    assert sheet.changes == []
+
+
+def test_health_checkpoint_is_last_write():
+    sheet = FakeSheets()
+    sync(replace(make_settings(False), run_kind="watchdog"), FakeMeta(), sheet)
+    assert len(sheet.changes) == 3
+    final = sheet.changes[-1][1][0]
+    assert final[0] == "'META_SYNC_HEALTH'!A2:I2"
+    assert final[1][0][3] == "SUCCESS"
+    assert final[1][0][8] == "watchdog"
+
+
+def test_bad_health_header_blocks_sheet_writes():
+    sheet = FakeSheets()
+    sheet.health = [["bad-header"]]
+    with pytest.raises(SyncError, match="Unexpected META_SYNC_HEALTH"):
+        sync(make_settings(False), FakeMeta(), sheet)
+    assert sheet.changes == []
+
+
+def test_health_capacity_guard_before_data_mutation():
+    class FullHealth(FakeSheets):
+        def capacity(self, name):
+            if name == "META_SYNC_HEALTH":
+                return (1, 9)
+            return super().capacity(name)
+    sheet = FullHealth()
+    with pytest.raises(SyncError, match="capacity exceeded"):
+        sync(make_settings(False), FakeMeta(), sheet)
+    assert sheet.changes == []
