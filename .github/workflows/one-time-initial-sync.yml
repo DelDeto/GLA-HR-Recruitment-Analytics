@@ -1,0 +1,36 @@
+name: GLA HR — One-time initial production sync
+
+on:
+  push:
+    paths:
+      - '.github/workflows/one-time-initial-sync.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gla-meta-ads-daily-sync
+  cancel-in-progress: false
+
+jobs:
+  first-sync:
+    if: github.event.head_commit.message == 'ops: one-time initial Meta production sync'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+      META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+      GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+      META_AD_ACCOUNT_IDS: ${{ secrets.META_AD_ACCOUNT_IDS }}
+      META_API_VERSION: v27.0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Unit tests
+        run: pytest -q
+      - name: Initial authorized production upsert (8-day window)
+        run: python -m src.meta_sync --days 8
