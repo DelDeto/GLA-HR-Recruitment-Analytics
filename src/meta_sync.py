@@ -242,6 +242,8 @@ class MetaClient:
         seen_pages: set[str] = set()
         for _page in range(50):
             result = self._request(endpoint, params)
+            if not isinstance(result.get("data"), list):
+                raise SyncError("Meta Insights response missing data array; no writes made")
             collected.extend(parse_meta_result(account, currency, r) for r in result.get("data", []))
             paging = result.get("paging") or {}
             cursor = (paging.get("cursors") or {}).get("after")
@@ -271,7 +273,8 @@ class GoogleSheets:
             self.http = AuthorizedSession(credential)
 
     def _request(self, method: str, endpoint: str, **kwargs) -> dict[str, Any]:
-        url = f"{BASE_URL}/{self.id}" + (f"/{endpoint.lstrip('/')}" if endpoint else "")
+        suffix = endpoint if endpoint.startswith(":") else f"/{endpoint.lstrip('/')}" if endpoint else ""
+        url = f"{BASE_URL}/{self.id}" + suffix
         try:
             response = self.http.request(method, url, timeout=90, **kwargs)
         except requests.RequestException as exc:
@@ -436,8 +439,17 @@ def sync(settings: Settings, meta: MetaClient | None = None, sheets: GoogleSheet
         currency = api.currency(account)
         downloaded = api.insights(account, begin, today, currency)
         if not downloaded:
-            raise SyncError(f"No Meta insights for {account}; not modifying spreadsheet on ambiguous empty pull")
+            # An inactive account must not stop other configured accounts. A
+            # disappearing previously stored positive window still fails closed.
+            if any(r and len(r) >= 9 and str(r[8]) == account
+                   and begin.isoformat() <= iso_date(r[0]) <= today.isoformat()
+                   and float(r[3] or 0) > 0 for r in stored):
+                raise SyncError("Meta returned no insights for a previously positive account window")
+            LOGGER.info("Configured account has a verified empty scan window; continuing")
+            continue
         fresh.extend(downloaded)
+    if not fresh:
+        raise SyncError("No Meta insights across configured accounts; no writes made")
     # Legacy rows without account_id can be resolved only when one account is configured.
     default_account = settings.accounts[0] if len(settings.accounts) == 1 else ""
     proposed, appended = plan_upserts(stored, fresh, default_account, rows_max)

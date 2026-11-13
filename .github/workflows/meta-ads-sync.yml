@@ -12,6 +12,22 @@ on:
         description: 'Read and compare, do not change Google Sheets'
         type: boolean
         default: true
+      history_start:
+        description: 'Optional explicit historical start YYYY-MM-DD (private staging only)'
+        type: string
+        default: ''
+      history_end:
+        description: 'Historical end YYYY-MM-DD'
+        type: string
+        default: ''
+      history_account_hashes:
+        description: 'SHA256 selectors of configured account IDs; no account IDs in public inputs'
+        type: string
+        default: ''
+      expected_sheet_hash:
+        description: 'SHA256 of the intended existing spreadsheet ID'
+        type: string
+        default: ''
   schedule:
     - cron: '15 0 * * *' # primary: 07:15 ICT
     - cron: '25 0 * * *' # automatic retry: 07:25 ICT
@@ -40,6 +56,10 @@ jobs:
       RUN_DAYS: ${{ inputs.days || '8' }}
       RUN_DRY_RUN: ${{ inputs.dry_run || false }}
       SCHEDULE_CRON: ${{ github.event.schedule || '' }}
+      HISTORY_START: ${{ inputs.history_start || '' }}
+      HISTORY_END: ${{ inputs.history_end || '' }}
+      HISTORY_ACCOUNT_HASHES: ${{ inputs.history_account_hashes || '' }}
+      HISTORY_EXPECTED_SHEET_HASH: ${{ inputs.expected_sheet_hash || '' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -69,6 +89,12 @@ jobs:
       - name: Direct Meta API to Google Sheet
         shell: bash
         run: |
+          if [ -n "$HISTORY_START" ]; then
+            HISTORY_ARGS=(--start-date "$HISTORY_START" --end-date "$HISTORY_END" --account-hashes "$HISTORY_ACCOUNT_HASHES" --expected-sheet-hash "$HISTORY_EXPECTED_SHEET_HASH")
+            if [ "$RUN_DRY_RUN" = 'true' ]; then HISTORY_ARGS+=(--dry-run); fi
+            python -m src.meta_history "${HISTORY_ARGS[@]}"
+            exit 0
+          fi
           if ! [[ "$RUN_DAYS" =~ ^[0-9]+$ ]]; then echo 'Days must be numeric' >&2; exit 1; fi
           ARGS=(--days "$RUN_DAYS")
           if [ "$RUN_DRY_RUN" = 'true' ]; then ARGS+=(--dry-run); fi
