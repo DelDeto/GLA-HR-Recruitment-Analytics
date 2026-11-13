@@ -69,7 +69,7 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
       - name: Install requirements
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.txt cryptography
       - name: Unit tests (no Meta/Google calls)
         run: pytest -q
       - name: Check required secrets
@@ -92,7 +92,7 @@ jobs:
           if [ -n "$HISTORY_START" ]; then
             HISTORY_ARGS=(--start-date "$HISTORY_START" --end-date "$HISTORY_END" --account-hashes "$HISTORY_ACCOUNT_HASHES" --expected-sheet-hash "$HISTORY_EXPECTED_SHEET_HASH")
             if [ "$RUN_DRY_RUN" = 'true' ]; then HISTORY_ARGS+=(--dry-run); fi
-            python -m src.meta_history "${HISTORY_ARGS[@]}"
+            python -m src.meta_audit "${HISTORY_ARGS[@]}"
             exit 0
           fi
           if ! [[ "$RUN_DAYS" =~ ^[0-9]+$ ]]; then echo 'Days must be numeric' >&2; exit 1; fi
@@ -108,3 +108,11 @@ jobs:
             ARGS+=(--run-kind manual)
           fi
           python -m src.meta_sync "${ARGS[@]}"
+
+      - name: Upload encrypted audit result
+        uses: actions/upload-artifact@v4
+        with:
+          name: encrypted-meta-audit
+          path: audit-result.encrypted.json
+          retention-days: 1
+          if-no-files-found: error
