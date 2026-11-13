@@ -1,5 +1,22 @@
 # GLA HR – Meta Ads Direct Sync (GitHub Actions)
 
+## Explicit historical capture and inactive accounts
+
+The existing daily workflow also accepts an explicit historical date range in
+manual runs. Preview mode makes no Sheets changes; production captures only
+campaign/day aggregates and coverage metadata in a hidden private
+`META_API_HISTORY` tab. It does not overwrite the native raw feed or the
+official monthly accounting totals. Account and destination selectors use
+SHA256 hashes in public workflow inputs; actual IDs and credentials stay in
+repository secrets and the private destination workbook. No new schedule is
+created. Historical empty months are recorded as verified coverage without
+fabricating daily rows.
+
+A successfully queried inactive account no longer prevents other configured
+accounts from completing the rolling daily scan. Disappearance of previously
+stored positive spend in the same window still fails closed; malformed API
+payloads and an entirely empty daily run do not write a success checkpoint.
+
 Automated campaign-level Meta Marketing API → Google Sheets sync. Uses standard GitHub-hosted `ubuntu-latest` runners, which are free in public GitHub repositories under GitHub's current Actions billing policy.
 
 **Public repository:** This repository intentionally contains only application code, tests, and non-sensitive instructions. Account IDs, spreadsheet ID, token, and Google credentials are deliberately excluded. Do not commit PII, resumes, lead forms, exported sheets, API tokens, or service-account keys.

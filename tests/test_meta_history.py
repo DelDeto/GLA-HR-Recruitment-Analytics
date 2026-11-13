@@ -71,3 +71,21 @@ def test_inactive_account_does_not_block_other_daily_accounts():
     result = sync(replace(make_settings(False), accounts=["111", "222"]), Inactive(), sheet)
     assert result["fetched"] == 1
     assert sheet.changes[-1][1][0][1][0][3] == "SUCCESS"
+
+
+def test_disappearing_positive_account_is_held_without_any_writes():
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    from src.meta_sync import RAW_COLS
+    class PreviouslyPositive(FakeSheets):
+        def read(self, tab, a1):
+            if tab == "META_RAW":
+                today = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).date()
+                return [RAW_COLS, [google_serial(today), "123", "example", 10, 1, 1, 0, "VND", "111"]]
+            return super().read(tab, a1)
+    class Empty(FakeMeta):
+        def insights(self, *args): return []
+    sheet = PreviouslyPositive()
+    with pytest.raises(SyncError, match="previously positive"):
+        sync(replace(make_settings(False), accounts=["111", "222"]), Empty(), sheet)
+    assert not sheet.changes
