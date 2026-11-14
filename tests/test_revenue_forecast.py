@@ -93,3 +93,15 @@ def test_native_plan_cannot_write_actual_fees_or_policies():
     import pytest
     with pytest.raises(ValueError):build_plan({'people':[],'sources':[]})
     assert put(7950,4,1,[[0]])['updateCells']['rows'][0]['values'][0]['userEnteredValue']=={'numberValue':0}
+
+def test_raw_missing_id_row_blocks_false_absence(tmp_path):
+    import openpyxl
+    from src.attendance_presence import read_sources
+    wb=openpyxl.Workbook();sh=wb.active;sh.title='Month 10'
+    sh.append(['Ngày','Mã nhân viên','Other','Họ tên'])
+    sh.append([date(2026,10,1),None,None,'Test Worker'])
+    path=tmp_path/'source.xlsx';wb.save(path)
+    raw,manifest,errors=read_sources([{'id':'synthetic','name':'PEGATRON.xlsx','path':str(path)}],date(2026,11,14))
+    assert not errors and len(raw)==1 and raw[0]['id']==''
+    people=[dict(key='one',factory='Pegatron',id='E123',name='Test Worker',join='2026-09-01')]
+    assert not match_presence(people,raw,manifest)[0]['identity_ok']

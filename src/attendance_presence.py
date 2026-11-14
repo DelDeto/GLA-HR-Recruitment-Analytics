@@ -24,6 +24,12 @@ def code(value):
     return s if re.fullmatch(r'[A-Z]+\d{3,}', s) else ''
 
 
+def named_without_code(value):
+    text=norm(value)
+    return (len(text.split())>=2 and bool(re.fullmatch(r"[A-Z][A-Z .'-]+",text))
+            and not any(token in text for token in ('HO VA TEN','HO TEN','TONG CONG','TEN NHAN VIEN')))
+
+
 def dates(value):
     out = set()
     if isinstance(value, datetime): value = value.date()
@@ -119,7 +125,8 @@ def read_sources(files, as_of):
                 for ri,r,ds in entries:
                     valid=[d.replace(day=1) for d in ds if d and d.year==as_of.year and d<=as_of]
                     months.update(valid)
-                    if len(r)<=max(ic,nc) or not code(r[ic]) or not str(r[nc] or '').strip():continue
+                    if len(r)<=max(ic,nc) or not str(r[nc] or '').strip():continue
+                    if not code(r[ic]) and not named_without_code(r[nc]):continue
                     for month in set(valid):
                         records.append(dict(factory=factory,month=month.isoformat(),id=code(r[ic]),name=str(r[nc]).strip(),
                             join_choices=sorted(d.isoformat() for d in dates(r[jc])) if jc is not None else [],
@@ -154,7 +161,9 @@ def match_presence(roster, records, manifests):
             p=hits[0]
             if r['month'][:7] < p['join'][:7]:
                 continue
-            resolved[(p['key'],r['month'])]=True;anchored[p['key']].add(r['id']);evidence[(p['key'],r['month'])].add(r['source'])
+            resolved[(p['key'],r['month'])]=True
+            if r['id']:anchored[p['key']].add(r['id'])
+            evidence[(p['key'],r['month'])].add(r['source'])
         else:
             potential=by_id or [p for p in roster if p['factory']==r['factory'] and norm(p['name'])==norm(r['name'])]
             for p in potential: issues[p['key']].add(r['month'])
