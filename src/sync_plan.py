@@ -7,7 +7,7 @@ from .sync_safety import validate_plan_writes, request_rect
 # approval/execution ledgers, charts, or any UI. Profiles are further restricted
 # by the private manifest and the actual target capacities.
 OWNERS = {
-    'lead': {7500, 7600},
+    'lead': {6203, 7500, 7600},
     'pv_ob': {7501, 7601, 7305},
     'attendance': {7851, 7852, 7853, 7304, 7504},
     'forecast': {7950, 7503, 7002},
@@ -92,6 +92,15 @@ def table_upserts(snapshot, table):
             raise SyncBlocked('TABLE_SCHEMA_CHANGED')
         header_guards[key(sid,start-1,c)] = {'before': entered(expected), 'after': entered(expected)}
     index, occupied = {}, []
+    duplicates=table.get('retain_duplicate_identity_columns',[])
+    if duplicates and(sid!=7305 or not set(keys)<=set(duplicates)or not set(duplicates)<=set(cols)):
+        raise SyncBlocked('DUPLICATE_RETENTION_NOT_AUTHORIZED')
+    preserve=set(table.get('preserve_existing_columns',[]))
+    nondecreasing=set(table.get('nondecreasing_columns',[]))
+    allowed_counts={6203:set(range(1,16))-{11},7500:{3},7600:{3}}
+    if nondecreasing-allowed_counts.get(sid,set()):raise SyncBlocked('MONOTONIC_FIELD_IS_NOT_A_LEAD_COUNT')
+    allowed_preserve={7500:{4,5},7600:{4,5},7305:{6,8},7851:{10,11,20},7852:{10,11,15}}
+    if preserve-allowed_preserve.get(sid,set()):raise SyncBlocked('PRESERVE_COLUMN_NOT_PROVENANCE')
     for row in range(start, end):
         values = [scalar(value(snapshot, sid, row, col)) for col in keys]
         if all(v is None for v in values):
@@ -102,8 +111,12 @@ def table_upserts(snapshot, table):
             raise SyncBlocked('EXISTING_ROW_INCOMPLETE_KEY')
         stable = digest(values)
         if stable in index:
-            raise SyncBlocked('DUPLICATE_EXISTING_KEY')
-        index[stable] = row; occupied.append(row)
+            first=index[stable][0]
+            if not duplicates or any(value(snapshot,sid,row,c)!=value(snapshot,sid,first,c)for c in duplicates):
+                raise SyncBlocked('DUPLICATE_EXISTING_KEY')
+            index[stable].append(row)
+        else:index[stable]=[row]
+        occupied.append(row)
     tail = max(occupied, default=start-1) + 1
     changes, guards, incoming = [], header_guards, {}
     for record in table['rows']:
@@ -119,24 +132,31 @@ def table_upserts(snapshot, table):
             continue
         incoming[stable] = record
         existed = stable in index
-        row = index.get(stable, tail)
+        physical = index.get(stable, [tail])
         if not existed:
             if tail >= end:
                 raise SyncBlocked('TARGET_CAPACITY_EXCEEDED')
-            index[stable] = row; tail += 1
-        for c in keys:
-            guards[key(sid, row, c)] = {'before': value(snapshot, sid, row, c), 'after': entered(values[c])}
-        for c in cols:
-            if values[c] is None or values[c] == '':
-                continue
-            before, after = value(snapshot, sid, row, c), entered(values[c])
-            if before == after:
-                continue
-            if existed and table.get('immutable_existing'):
-                raise SyncBlocked('HISTORICAL_FACT_CONFLICT')
-            if 'formulaValue' in before:
-                raise SyncBlocked('ATTEMPT_TO_REPLACE_FORMULA_WITH_FACT')
-            changes.append({'key': key(sid, row, c), 'before': before, 'after': after})
+            index[stable] = physical; tail += 1
+        for row in physical:
+            for c in keys:
+                guards[key(sid, row, c)] = {'before': value(snapshot, sid, row, c), 'after': entered(values[c])}
+            for c in cols:
+                if values[c] is None or values[c] == '':continue
+                before, after = value(snapshot, sid, row, c), entered(values[c])
+                if before == after:continue
+                if existed and c in nondecreasing and 'numberValue'in before:
+                    if 'numberValue'not in after or after['numberValue']<before['numberValue']:
+                        raise SyncBlocked('HISTORICAL_LEAD_COUNT_DECREASE_REVIEW')
+                if 'formulaValue'in before and c in table.get('verified_formula_columns',[]):
+                    effective=snapshot['cells'][key(sid,row,c)].get('effectiveValue',{})
+                    if effective!=after:raise SyncBlocked('PRESERVED_FORMULA_VALUE_DIFFERS')
+                    guards[key(sid,row,c)]={'before':before,'after':before};continue
+                if existed and c in preserve:continue
+                if existed and table.get('immutable_existing'):
+                    raise SyncBlocked('HISTORICAL_FACT_CONFLICT')
+                if 'formulaValue' in before:
+                    raise SyncBlocked('ATTEMPT_TO_REPLACE_FORMULA_WITH_FACT')
+                changes.append({'key': key(sid, row, c), 'before': before, 'after': after})
     return changes, guards
 
 

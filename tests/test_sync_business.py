@@ -41,7 +41,7 @@ def test_source_headers_and_new_tabs_are_not_silently_certified():
     bundle={'transport_scan_complete':True,'sources':[{'file_id':'source','fingerprint':'hash',
         'tabs':[{'id':1,'name':'data','rows':[[0,[[0,'Day'],[1,'Hours']]], [1,[[0,1],[1,0]]]]}]}]}
     payload={'sources':bundle};options={'version':'test','tab_contracts':{'source':{'1':{
-        'header_row':0,'headers':{'0':'Day','1':'Hours'},'parser':'daily','state':'PARSED'}}}}
+        'header_row':0,'headers':{'0':'Day','1':'Hours'},'parser':'daily','state':'PARSED','consumed_columns':[0,1]}}}}
     out=envelope(payload,options,{}, {'source'});validate_envelope(out,bundle)
     bundle['sources'][0]['tabs'].append({'id':2,'name':'new','rows':[[0,[[0,'Unknown']]]]})
     out=envelope(payload,options,{}, {'source'})

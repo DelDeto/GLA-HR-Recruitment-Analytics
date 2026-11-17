@@ -22,6 +22,7 @@ def scalar(value):
         return value.isoformat()
     if isinstance(value, float) and not math.isfinite(value):
         raise SyncBlocked('NONFINITE_SOURCE_VALUE')
+    if isinstance(value,float)and value.is_integer():return int(value)
     return value
 
 
@@ -136,17 +137,20 @@ class GoogleTransport:
             native = self.snapshot(file_id)
             tabs = []
             for sh in native['sheets']:
-                rows = {}
+                rows, errors = {}, []
                 for key, cell in native['cells'].items():
                     sid, r, c = map(int, key.split(':'))
                     if sid != sh['sheetId']:
                         continue
                     value = cell.get('effectiveValue', {})
                     if 'errorValue' in value:
-                        raise SyncBlocked('SOURCE_FORMULA_ERROR')
-                    rows.setdefault(r, {})[c] = next(iter(value.values()), None)
-                tabs.append({'id': sh['sheetId'], 'name': sh['title'], 'hidden': sh.get('hidden', False),
-                             'rows': [[r, sorted(cols.items())] for r, cols in sorted(rows.items())]})
+                        errors.append({'row':r,'column':c,'type':value['errorValue'].get('type','UNKNOWN')})
+                        continue
+                    rows.setdefault(r, {})[c] = scalar(next(iter(value.values()), None))
+                tab={'id': sh['sheetId'], 'name': sh['title'], 'hidden': sh.get('hidden', False),
+                     'rows': [[r, sorted(cols.items())] for r, cols in sorted(rows.items())]}
+                if errors:tab['formula_errors']=errors
+                tabs.append(tab)
             fingerprint = digest(tabs)
         elif mime == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
             raw = request(self.session, 'GET', DRIVE + '/' + quote(file_id, safe=''),

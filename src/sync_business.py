@@ -117,21 +117,18 @@ def coverage(payload,used,options):
     """A byte read is not proof that a business parser consumed a new schema."""
     out={}
     for source in payload['sources']['sources']:
+        from .sync_source_audit import source_scope_audit,resolve_contracts
+        role=next((k for k,fid in options.get('source_roles',{}).items()if fid==source['file_id']),None)
+        program='collector'if role and role!='ob'else'normalizer'
+        sha=options.get('programs',{}).get(program,{}).get('sha256')
+        reviewed=source_scope_audit(source,resolve_contracts(source,options),sha)
         claims={}
         for tab in source['tabs']:
             status={'state':'VERIFIED_OUT_OF_SCOPE','reason_code':'OTHER_PIPELINE_SOURCE'}
             if source['file_id']in used:
-                spec=options.get('tab_contracts',{}).get(source['file_id'],{}).get(str(tab['id']))
-                status={'state':'UNVERIFIED'}
-                if spec:
-                    cells={int(r):dict(cs)for r,cs in tab['rows']}
-                    headers=spec.get('headers',{})
-                    matched=bool(headers)and all(cells.get(spec['header_row'],{}).get(int(c))==x for c,x in headers.items())
-                    if matched and spec.get('parser')and spec.get('state')=='PARSED':status={'state':'PARSED'}
-                    elif matched and spec.get('state')=='VERIFIED_OUT_OF_SCOPE'and spec.get('reason_code'):
-                        status={'state':'VERIFIED_OUT_OF_SCOPE','reason_code':spec['reason_code']}
-                    elif not tab['rows']and spec.get('parser')=='EMPTY_TAB':
-                        status={'state':'VERIFIED_OUT_OF_SCOPE','reason_code':'EMPTY_TAB'}
+                status=reviewed[str(tab['id'])]
+                if not tab['rows']and not tab.get('formula_errors'):
+                    status={'state':'VERIFIED_OUT_OF_SCOPE','reason_code':'EMPTY_TAB'}
             claims[str(tab['id'])]=status
         out[source['file_id']]={'fingerprint':source['fingerprint'],'tabs':claims}
     return out
@@ -175,20 +172,33 @@ def legacy_environment(payload,options,work,*,collector=False):
             else:sys.modules[k]=old
 
 
-def recruitment(payload,options,work):
+def recruitment(payload,options,work,*,with_leads=True):
     roles=options['source_roles'];sources={s['file_id']:s for s in payload['sources']['sources']}
-    required=['sale_le','sale_thao','sale_yen','crm','pv','ob','form_epu','form_gtvt','form_fevc_gtvt','form_ctech','form_uet']
+    from .sync_source_audit import resolve_contracts
+    resolved=dict(options,tab_contracts={fid:resolve_contracts(source,options)for fid,source in sources.items()})
+    required=(['sale_le','sale_thao','sale_yen','crm','pv','ob','form_epu','form_gtvt','form_fevc_gtvt','form_ctech','form_uet']if with_leads else['pv','ob'])
     if any(roles.get(k)not in sources for k in required):raise SyncBlocked('RECRUITMENT_SOURCE_MISSING')
     for role in required:
         filename='opt-form-'+role[5:]+'.json' if role.startswith('form_') else 'opt-'+role+'_full.json'
-        (work/filename).write_text(json.dumps(native_source(sources[roles[role]]),ensure_ascii=False))
+        source=sources[roles[role]]
+        if role=='crm':
+            primary=[t for t in source['tabs']if resolved['tab_contracts'][roles[role]].get(str(t['id']),{}).get('parser')=='CRM_APPLICANTS']
+            if len(primary)!=1:raise SyncBlocked('CRM_PRIMARY_SCHEMA_AMBIGUOUS_OR_MISSING')
+            source=dict(source,tabs=primary+[t for t in source['tabs']if t['id']!=primary[0]['id']])
+        (work/filename).write_text(json.dumps(native_source(source),ensure_ascii=False))
     with legacy_environment(payload,options,work,collector=True):
         collector=load_verified(options['programs']['collector'],payload['targets']['A'],'gla_current_collector')
         with redirect_stdout(io.StringIO()):
-            leads,issues=collector.build_leads()
+            leads,issues=collector.build_leads()if with_leads else([],[])
             events,whitelist,eventissues=collector.build_events(leads)
+        legacy={}
+        if with_leads:
+            from .sync_legacy_leads import review,merge_receipts
+            legacy=review(payload['sources']['sources'],resolved,leads,sys.modules['folder_revenue_sync'].date,payload['as_of'],collector.plant)
+            leads,duplicate_count=merge_receipts(leads,legacy['receipts'])
+            legacy['merged_duplicates']=duplicate_count
     return {'leads':leads,'events':events,'onboard_all':whitelist,'issues':issues+eventissues,
-            'asof':payload['as_of'],'source_roles':roles}
+            'asof':payload['as_of'],'source_roles':roles,'legacy_sales_audit':legacy}
 
 
 def lead_adapter(payload,options,work):
@@ -205,15 +215,42 @@ def lead_adapter(payload,options,work):
         row=[serial(day),fac,group,count,'Verified current collector; stable person/day/group key','Sales / CRM / Form']
         (recent if day>='2026-09-01'else history).append(row)
     out=envelope(payload,options,result,set(options['source_roles'].values()));out['tables']={}
+    legacy_counts=result.get('legacy_sales_audit',{}).get('counts',{})
+    if legacy_counts.get('needs_review')or legacy_counts.get('unknown_date'):
+        out['complete']=False;out['validation']='PARTIAL'
     for role,s in payload['targets'].items():
-        out['tables'][role]=[table(s,7500,list(range(6)),[0,1,2],recent,'lead_day_group_phone',end=1999),
+        import re
+        from openpyxl.utils import column_index_from_string
+        routes={}
+        for row in range(3,1999):
+            formula=authored(s,7500,row,3).get('formulaValue')
+            if not formula:continue
+            match=re.fullmatch(r'=N\(LEADS_LDPT!([A-P])(\d+)\)',formula)
+            if not match:raise SyncBlocked('LEAD_FORMULA_BINDING_UNVERIFIED')
+            col=column_index_from_string(match[1])-1;rr=int(match[2])-1
+            if col in (0,11)or v(s,6203,2,col)!=v(s,7500,row,1)or v(s,6203,rr,0)!=v(s,7500,row,0):
+                raise SyncBlocked('LEAD_SOURCE_ROUTE_KEY_MISMATCH')
+            routes[(v(s,7500,row,0),v(s,7500,row,1),'LĐPT')]=(rr,col)
+        direct=[];matrix={};cols=[0]+[c for c in range(1,16)if c!=11]
+        for record in recent:
+            route=routes.get(tuple(record[:3]))
+            if route is None:direct.append(record);continue
+            rr,col=route
+            values=matrix.setdefault(rr,{0:record[0]});values[col]=record[3]
+        matrices=[[values.get(c)for c in cols]for row,values in sorted(matrix.items())]
+        out['tables'][role]=[table(s,6203,cols,[0],matrices,'lead_day_group_phone',end=1000),
+                             table(s,7500,list(range(6)),[0,1,2],direct,'lead_day_group_phone',end=1999),
                              table(s,7600,list(range(6)),[0,1,2],history,'lead_day_group_phone',end=1999)]
+        out['tables'][role][0]['nondecreasing_columns']=cols[1:]
+        for target_table in out['tables'][role][1:]:target_table['nondecreasing_columns']=[3]
+        for target_table in out['tables'][role][1:]:target_table['preserve_existing_columns']=[4,5]
+        out['normalized'].setdefault('ownership_audit',{})[role]={'formula_routes':len(routes),'source_matrix_rows':len(matrix),'direct_rows':len(direct)}
     return out
 
 
 def pv_adapter(payload,options,work):
     result=payload['normalized'].get('lead')
-    if result is None:result=recruitment(payload,options,work)
+    if result is None:result=recruitment(payload,options,work,with_leads=False)
     # Legacy keys are retained only for unique event buckets. Ambiguous legacy
     # name/day buckets are quarantined, never given a row-ordinal identity.
     buckets=collections.defaultdict(list)
@@ -238,19 +275,26 @@ def pv_adapter(payload,options,work):
     norm={'events':events,'onboard_all':result['onboard_all'],'issues':issues+roster_issues,
           'roster':[{k:x for k,x in r.items()if k!='phone'}for r in roster],
           'whitelist_loaded':True,'asof':payload['as_of']}
-    out=envelope(payload,options,norm,set(options['source_roles'].values()));out['tables']={}
+    out=envelope(payload,options,norm,{options['source_roles'][k]for k in ['pv','ob']});out['tables']={}
+    out['plan_blockers']={};norm['event_alias_review']={};norm['source_reference_reuse']={}
     for role,s in payload['targets'].items():
-        rows=[]
+        rows=[];reviews=[];reused=[]
         # Refuse a parallel set of event IDs on top of the installed legacy IDs.
         # An explicit, reviewed identity migration is required before deployment.
-        old_sources={}
+        old_sources={};old_events=collections.defaultdict(set);legacy_people={}
+        for row in range(1799,2600):
+            key=v(s,6240,row,0)
+            if key:legacy_people[key]=(v(s,6240,row,1),norm_name(v(s,6240,row,2)),v(s,6240,row,3),v(s,6240,row,8))
         for sid,end in [(7501,999),(7601,1499)]:
             for row in range(3,end):
                 source=v(s,sid,row,6)
                 if source:
                     old_sources.setdefault((v(s,sid,row,0),v(s,sid,row,1),v(s,sid,row,3),source),set()).add(v(s,sid,row,5))
+                    old_events[(v(s,sid,row,0),v(s,sid,row,1),v(s,sid,row,3))].add(v(s,sid,row,5))
         for event in events:
-            candidates={event['canonical_key'],'EV-'+event['canonical_key']}
+            candidates={event['canonical_key'],'EV-'+event['canonical_key'],event['key'],'EV-'+event['key']}
+            hist='HIST-'+hashlib.sha256((event['stage']+'|'+event['factory']+'|'+norm_name(event['name'])+'|'+event['date']).encode()).hexdigest()[:24]
+            candidates.add(hist)
             canonical='EV-'+event['canonical_key']
             if event['stage']=='ONBOARD':
                 people=[p for p in roster if p['factory']==event['factory']and p['join']==event['date']and norm_name(p['name'])==norm_name(event['name'])]
@@ -258,15 +302,35 @@ def pv_adapter(payload,options,work):
                 canonical=people[0]['key'];candidates.add(canonical)
             record=[serial(event['date']),event['factory'],'LĐPT',event['stage'],1,canonical,event['source'],event['method']]
             aliases=old_sources.get((record[0],record[1],record[3],record[6]),set())
-            if aliases:
-                if len(aliases)!=1 or not aliases<=candidates:raise SyncBlocked('LEGACY_EVENT_IDENTITY_RECONCILIATION_REQUIRED')
-                record[5]=next(iter(aliases))
+            expected_person=(event['factory'],norm_name(event['name']),record[0],event['stage'])
+            # A row URL is provenance, not a person's identity. External row
+            # insertions may reuse it for a different, evidenced candidate.
+            for old_key in list(aliases):
+                previous_person=legacy_people.get(old_key)
+                if previous_person and previous_person!=expected_person and old_key not in candidates:
+                    reused.append({'old_key':old_key,'current_key':canonical,'source':event['source'],
+                        'reason':'SOURCE_ROW_REUSED_DIFFERENT_VERIFIED_PERSON','action':'PRESERVE_OLD_ID_DO_NOT_ALIAS'})
+                    aliases=aliases-{old_key}
+            for key in old_events.get((record[0],record[1],record[3]),set()):
+                if key in candidates or legacy_people.get(key)==expected_person:
+                    aliases=aliases|{key};candidates.add(key)
+            if aliases and(len(aliases)!=1 or not aliases<=candidates):
+                reviews.append({'event':event,'aliases':sorted(aliases),'candidates':sorted(candidates),
+                    'legacy_people':{k:legacy_people.get(k)for k in aliases},'action':'RETAIN_ALL_EXISTING_IDS_NO_APPEND'})
+                continue
+            if aliases:record[5]=next(iter(aliases))
             rows.append(record)
         rr=[[p['factory'],p['id'],p['name'],serial(p['join']),serial(p['off']),p['problem'],p['source'],p['key'],p['bridge']]for p in roster]
         out['tables'][role]=[
             table(s,7501,list(range(8)),[5],[r for r in rows if r[0]>=serial('2026-09-01')],'event_episode',end=999),
             table(s,7601,list(range(8)),[5],[r for r in rows if r[0]<serial('2026-09-01')],'event_episode',end=1499),
             table(s,7305,list(range(9)),[7],rr,'event_episode',end=2000)]
+        out['tables'][role][0]['verified_formula_columns']=[2]
+        out['tables'][role][2].update(retain_duplicate_identity_columns=[0,1,2,3,4,7],preserve_existing_columns=[6,8])
+        norm['event_alias_review'][role]=reviews
+        norm['source_reference_reuse'][role]=reused
+        if reviews:out['plan_blockers'][role]='LEGACY_EVENT_ALIAS_REVIEW_REQUIRED'
+    (work/'event-alias-review.json').write_text(json.dumps(norm['event_alias_review'],ensure_ascii=False))
     return out
 
 

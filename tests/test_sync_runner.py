@@ -7,7 +7,7 @@ import pytest
 from src.sync_runtime import PrivateState, SyncBlocked, request, digest
 from src.sync_sources import collect_once, GoogleTransport
 from src.sync_plan import table_upserts, validate_owned, expand_forecast
-from src.sync_runner import BRANCHES, execute_stage, protected_hash, stage_run, pinned_adapter, validate_envelope
+from src.sync_runner import BRANCHES, execute_stage, protected_hash, stage_run, pinned_adapter, validate_envelope,adapter_diagnostics
 from src.sync_safety import validate_plan_writes, UnsafeSyncPlan
 from src.sync_identity import group, lead_key, episode_key, meta_key
 from src.sync_audit import reconcile
@@ -222,6 +222,47 @@ def test_staging_with_missing_adapter_is_partial_and_keeps_targets(tmp_path):
     cfg={'targets':{'A':{'id':'A','role':'MASTER_V23'},'B':{'id':'B','role':'SEPTEMBER_V22'}},'source_files':['source'],'as_of':'2026-11-17'}
     run,s=stage_run(cfg,n,state(tmp_path));assert len(run)==64
     assert all(p['state']=='PARTIAL'for p in s['branches'].values())and not n.calls
+
+
+def test_validated_normalization_can_be_audited_after_plan_failure_without_execution(tmp_path):
+    n=Native();n.source=lambda _:{'file_id':'source','fingerprint':'hash','tabs':[{'id':1}]}
+    cfg={'targets':{'A':{'id':'A','role':'MASTER_V23'},'B':{'id':'B','role':'SEPTEMBER_V22'}},
+         'source_files':['source'],'as_of':'2026-11-17'}
+    seen=[]
+    def adapter(payload):
+        branch=payload['branch'];seen.append((branch,set(payload['normalized'])))
+        return {'complete':True,'validation':'PASS','coverage':{'source':{'fingerprint':'hash','tabs':{'1':{'state':'PARSED'}}}},
+                'normalized':{'whitelist_loaded':True},'tables':{'A':[table([])],'B':[table([])]},
+                'plan_blockers':{'A':'AUDIT_REVIEW_REQUIRED','B':'AUDIT_REVIEW_REQUIRED'}}
+    _,result=stage_run(cfg,n,state(tmp_path),adapters={b:adapter for b in BRANCHES})
+    assert 'pv_ob'in dict(seen)['attendance']
+    assert result['branches']['attendance']['state']=='PARTIAL'
+    assert set(result['branches']['attendance']['targets'])=={'A','B'}
+    assert not n.calls and not list((tmp_path/'private').glob('last-good-*'))
+
+
+def test_staging_reports_target_plan_results_separately(tmp_path):
+    n=Native();n.source=lambda _:{'file_id':'source','fingerprint':'hash','tabs':[{'id':1}]}
+    cfg={'targets':{'A':{'id':'A','role':'MASTER_V23'},'B':{'id':'B','role':'SEPTEMBER_V22'}},
+         'source_files':['source'],'as_of':'2026-11-17'}
+    def adapter(payload):
+        return {'complete':True,'validation':'PASS','coverage':{'source':{'fingerprint':'hash','tabs':{'1':{'state':'PARSED'}}}},
+                'normalized':{},'tables':{'A':[table([])],'B':[table([])]},'plan_blockers':{'A':'REVIEW_REQUIRED'}}
+    _,s=stage_run(cfg,n,state(tmp_path),adapters={'lead':adapter})
+    assert s['branches']['lead']['state']=='PARTIAL'
+    assert s['branches']['lead']['targets']['A']['state']=='PARTIAL'
+    assert s['branches']['lead']['targets']['B']['state']=='READY'
+    assert not n.calls
+
+
+def test_adapter_diagnostics_do_not_expose_worker_records_or_urls():
+    out={'coverage':{'private-source':{'tabs':{'private-tab':{'state':'UNVERIFIED','critical_errors':2,'excluded_errors':285}}}},
+         'normalized':{'leads':[{'name':'SENSITIVE','phone':'SENSITIVE'}],
+          'legacy_sales_audit':{'counts':{'unknown_date':5,'name':'SENSITIVE'},'quarantine':[{'source':'SENSITIVE'}]},
+          'event_alias_review':{'A':[{'person':'SENSITIVE'}]}}}
+    d=adapter_diagnostics(out)
+    assert d['critical_formula_errors']==2 and d['event_alias_groups']=={'A':1}
+    assert 'SENSITIVE'not in json.dumps(d)and 'private-source'not in json.dumps(d)
 
 
 def test_every_tab_needs_semantic_coverage_not_just_matching_counts():

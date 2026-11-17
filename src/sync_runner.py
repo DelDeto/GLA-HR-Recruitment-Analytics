@@ -14,6 +14,7 @@ from pathlib import Path
 import subprocess
 import sys
 import time
+import uuid
 from .sync_runtime import PrivateState, SyncBlocked, digest
 from .sync_sources import GoogleTransport, collect_once
 from .sync_plan import table_upserts, requests_for, expand_forecast, validate_owned
@@ -58,6 +59,21 @@ def validate_envelope(output, bundle):
                 raise SyncBlocked('ADAPTER_TAB_UNVERIFIED')
             if status['state']=='VERIFIED_OUT_OF_SCOPE' and not status.get('reason_code'):
                 raise SyncBlocked('OUT_OF_SCOPE_REASON_MISSING')
+
+
+def adapter_diagnostics(output):
+    """Only allowlisted counts leave private normalization artifacts."""
+    files=output.get('coverage',{});tabs=[t for f in files.values()for t in f.get('tabs',{}).values()]
+    result={'files':len(files),'tabs':len(tabs),
+        'unverified_tabs':sum(t.get('state')not in ('PARSED','VERIFIED_OUT_OF_SCOPE')for t in tabs),
+        'critical_formula_errors':sum(t.get('critical_errors',0)for t in tabs),
+        'excluded_formula_errors':sum(t.get('excluded_errors',0)for t in tabs)}
+    legacy=output.get('normalized',{}).get('legacy_sales_audit',{})
+    result['legacy_sales']={k:v for k,v in legacy.get('counts',{}).items()
+        if k in ('already_counted','outside_period','unknown_date','needs_review')and type(v)is int}
+    if type(legacy.get('merged_duplicates'))is int:result['legacy_sales']['merged_duplicates']=legacy['merged_duplicates']
+    result['event_alias_groups']={role:len(rows)for role,rows in output.get('normalized',{}).get('event_alias_review',{}).items()if role in ('A','B')}
+    return result
 
 
 def pinned_adapter(spec, payload, state):
@@ -128,19 +144,25 @@ def stage_run(config, transport, state, adapters=None):
     working = {n:dict(s,cells=dict(s['cells'])) for n,s in before.items()}
     branches, normalized = {}, {}
     for branch in BRANCHES:
+        diagnostics={}
         try:
             if not bundle['transport_scan_complete']:
                 raise SyncBlocked('SOURCE_SCAN_PARTIAL')
-            if any(branches[d]['state']!='READY' for d in DEPENDENCIES.get(branch, ())):
+            if any(d not in normalized for d in DEPENDENCIES.get(branch, ())):
                 raise SyncBlocked('DEPENDENCY_NOT_READY')
             spec = config.get('adapters', {}).get(branch)
             payload = {'branch':branch, 'as_of':config['as_of'], 'sources':bundle,
                        'targets':working, 'normalized':normalized,
                        'options':(spec or {}).get('options', {})}
             output = adapters[branch](payload) if adapters is not None and branch in adapters else pinned_adapter(spec, payload, state)
+            diagnostics=adapter_diagnostics(output)
             validate_envelope(output, bundle)
             if output.get('validation') != 'PASS':
                 raise SyncBlocked('BUSINESS_VALIDATION_NOT_PASS')
+            # Retain a fully source-validated normalization for downstream
+            # read-only diagnostics even if a target plan is blocked. Execution
+            # still requires every dependency's actual plan/readback to pass.
+            normalized[branch]=output.get('normalized',{})
             if branch != 'forecast' and set(output.get('tables',{})) != {'A','B'}:
                 raise SyncBlocked('EXPLICIT_BOTH_TARGET_TABLES_REQUIRED')
             if branch != 'forecast' and any(not output['tables'][n] for n in ('A','B')):
@@ -150,42 +172,53 @@ def stage_run(config, transport, state, adapters=None):
                     any(type(proof[n].get('rows'))is not int or proof[n]['rows']<0 or
                         not re.fullmatch('[0-9a-f]{64}',str(proof[n].get('hash','')))for n in ('A','B'))):
                     raise SyncBlocked('NO_VERIFIABLE_BRANCH_FACT_TABLE')
-            plans = {}
+            plans = {};target_status={}
             for name,target in config['targets'].items():
-                changes, guards = [], {}
-                if branch == 'forecast':
-                    from .forecast_sync import build_plan
-                    fc = output['forecast'][name]
-                    if not fc.get('installed') or fc.get('workbook_role')!=target['role']:
-                        raise SyncBlocked('FORECAST_ROLE_CHANGED')
-                    native = build_plan(fc)
-                    validate_owned(native,working[name],target['role'],branch,target.get('ownership',{}).get(branch,[]))
-                    changes = expand_forecast(native,working[name])
-                else:
-                    for table in output.get('tables', {}).get(name, []):
-                        if branch=='attendance' and table.get('sheet_id') in (7851,7852,7504) and table.get('immutable_existing') is not True:
-                            raise SyncBlocked('ACTUAL_HISTORY_MUST_BE_IMMUTABLE')
-                        if branch=='bonus' and table.get('sheet_id')==7401 and table.get('immutable_existing') is not True:
-                            raise SyncBlocked('LEGACY_AWARD_HISTORY_MUST_BE_IMMUTABLE')
-                        part, keys = table_upserts(working[name],table)
-                        changes.extend(part); guards.update(keys)
-                if len({c['key'] for c in changes}) != len(changes):
-                    raise SyncBlocked('OVERLAPPING_BRANCH_TABLES')
-                if branch == 'bonus':
-                    for c in changes:
-                        if c['after'].get('stringValue') in ('Đã thực hiện thưởng','ĐÃ CHI','ĐÃ DUYỆT','ĐÃ CHỐT'):
-                            raise SyncBlocked('BONUS_CANNOT_APPROVE_OR_CLAIM_PAYMENT')
-                validate_owned(requests_for(changes), working[name],target['role'],branch,target.get('ownership',{}).get(branch,[]))
-                plans[name] = {'changes':changes, 'guards':guards}
+                try:
+                    if output.get('plan_blockers',{}).get(name):
+                        raise SyncBlocked(output['plan_blockers'][name])
+                    changes, guards = [], {}
+                    if branch == 'forecast':
+                        from .forecast_sync import build_plan
+                        fc = output['forecast'][name]
+                        if not fc.get('installed') or fc.get('workbook_role')!=target['role']:
+                            raise SyncBlocked('FORECAST_ROLE_CHANGED')
+                        native = build_plan(fc)
+                        validate_owned(native,working[name],target['role'],branch,target.get('ownership',{}).get(branch,[]))
+                        changes = expand_forecast(native,working[name])
+                    else:
+                        for table in output.get('tables', {}).get(name, []):
+                            if branch=='attendance' and table.get('sheet_id') in (7851,7852,7504) and table.get('immutable_existing') is not True:
+                                raise SyncBlocked('ACTUAL_HISTORY_MUST_BE_IMMUTABLE')
+                            if branch=='bonus' and table.get('sheet_id')==7401 and table.get('immutable_existing') is not True:
+                                raise SyncBlocked('LEGACY_AWARD_HISTORY_MUST_BE_IMMUTABLE')
+                            part, keys = table_upserts(working[name],table)
+                            changes.extend(part); guards.update(keys)
+                    if len({c['key'] for c in changes}) != len(changes):
+                        raise SyncBlocked('OVERLAPPING_BRANCH_TABLES')
+                    if branch == 'bonus':
+                        for c in changes:
+                            if c['after'].get('stringValue') in ('Đã thực hiện thưởng','ĐÃ CHI','ĐÃ DUYỆT','ĐÃ CHỐT'):
+                                raise SyncBlocked('BONUS_CANNOT_APPROVE_OR_CLAIM_PAYMENT')
+                    validate_owned(requests_for(changes), working[name],target['role'],branch,target.get('ownership',{}).get(branch,[]))
+                    plans[name] = {'changes':changes, 'guards':guards}
+                    target_status[name]={'state':'READY'}
+                except Exception as exc:
+                    target_status[name]={'state':'PARTIAL','reason':str(exc)if isinstance(exc,SyncBlocked)else'TARGET_PLAN_REJECTED'}
+            if any(x['state']!='READY'for x in target_status.values()):
+                branches[branch]={'state':'PARTIAL','reason':next(x['reason']for x in target_status.values()if x['state']!='READY'),
+                                  'normalization_state':'VALIDATED','targets':target_status,'plans':plans,'diagnostics':diagnostics}
+                continue
             # A failure in B must not mutate the staged working snapshot of A.
             for name,plan in plans.items():
                 for c in plan['changes']:
                     working[name]['cells'][c['key']] = {'userEnteredValue':c['after']}
             branches[branch] = {'state':'READY', 'plans':plans,
-                                'adapter_sha':(spec or {}).get('sha256')}
+                                'adapter_sha':(spec or {}).get('sha256'),'normalization_state':'VALIDATED','targets':target_status,'diagnostics':diagnostics}
             normalized[branch] = output.get('normalized', {})
         except Exception as exc:
-            branches[branch] = {'state':'PARTIAL', 'reason':str(exc) if isinstance(exc,SyncBlocked) else 'ADAPTER_OR_PLAN_REJECTED'}
+            branches[branch] = {'state':'PARTIAL', 'reason':str(exc) if isinstance(exc,SyncBlocked) else 'ADAPTER_OR_PLAN_REJECTED','diagnostics':diagnostics}
+            branches[branch]['targets']={n:dict(state='PARTIAL',reason=branches[branch]['reason'])for n in config['targets']}
     stage = {'config_hash':digest(config), 'created_at':time.time(), 'config':config,
              'sources':bundle, 'normalized':normalized, 'before':before, 'branches':branches,
              'protected':{n:protected_hash(s,config['targets'][n]['role']) for n,s in before.items()},
@@ -321,7 +354,9 @@ def execute_stage(run_id, stage, transport, state, *, apply=False):
         result['authored_cells_before'] = sum('userEnteredValue' in c for c in stage['before'][name]['cells'].values())
         result['authored_cells_after'] = sum('userEnteredValue' in c for c in final_snapshots.get(name,{'cells':{}})['cells'].values())
     report = {'comparison':comparison, 'run_id':run_id, 'mode':'APPLY' if apply else 'DRY_RUN', 'targets':results,
-              'blockers':{b:p.get('reason') for b,p in stage['branches'].items() if p['state']!='READY'}}
+              'blockers':{b:p.get('reason') for b,p in stage['branches'].items() if p['state']!='READY'},
+              'planning':{b:p.get('targets',{})for b,p in stage['branches'].items()}}
+    report['diagnostics']={b:p.get('diagnostics',{})for b,p in stage['branches'].items()}
     if not apply and stage['config'].get('private_common_scope'):
         try:
             from .sync_scope import check_common
@@ -337,6 +372,7 @@ def main():
     parser.add_argument('--config',required=True);parser.add_argument('--state-dir',required=True)
     parser.add_argument('--apply',action='store_true');parser.add_argument('--resume')
     args=parser.parse_args()
+    attempt_id=uuid.uuid4().hex;state=None
     try:
         config=json.loads(Path(args.config).read_text());state=PrivateState(args.state_dir)
         with state.lock():
@@ -352,9 +388,12 @@ def main():
                 run_id,stage=stage_run(config,transport,state)
             report=execute_stage(run_id,stage,transport,state,apply=args.apply)
         # Report contains counts/reason codes/hashes only; no worker rows or URLs.
+        report['attempt_id']=attempt_id
         print(json.dumps(report));return 0 if all(t['state'] in ('SUCCESS','DRY_RUN_READY')for t in report['targets'].values()) else 2
     except (SyncBlocked,OSError,ValueError,KeyError) as exc:
         reason=str(exc) if isinstance(exc,SyncBlocked) else 'CONFIG_OR_RUNTIME_INPUT_INVALID'
-        print(json.dumps({'state':'BLOCKED','reason':reason}));return 2
+        failure={'attempt_id':attempt_id,'state':'BLOCKED','reason':reason}
+        if state is not None:state.save('attempt-'+attempt_id+'.json',failure,immutable=True)
+        print(json.dumps(failure));return 2
 
 if __name__=='__main__':raise SystemExit(main())
