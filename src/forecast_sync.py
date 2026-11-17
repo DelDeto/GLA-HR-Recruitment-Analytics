@@ -33,12 +33,13 @@ def build_plan(config):
  q.append(put(7950,4,17,[r[16:]for r in trace]))
  original=config['original_calendar_formula']
  if 'FORECAST_V22!$K' in original:raise ValueError('Use archived pre-V2.2 calendar formula for the counterfactual baseline')
- baseline=local_baseline(original)
- q.append(put(7950,3,39,[['Before_units','Before_hours','Before_rate','Before_forecast','Before_warning','Before_Sep','Before_Oct','Before_Nov','Before_Dec']]))
- q.append(put(7950,4,39,[[baseline]]))
- q.append({'updateCells':{'start':{'sheetId':7950,'rowIndex':3,'columnIndex':38},'rows':[{'values':[{'note':original}]}],'fields':'note'}})
- q.append({'updateCells':{'start':{'sheetId':7950,'rowIndex':1,'columnIndex':0},'rows':[{'values':[{'note':coverage}]}],'fields':'note'}})
- q.append({'autoFill':{'sourceAndDestination':{'source':{'sheetId':7950,'startRowIndex':3,'endRowIndex':4,'startColumnIndex':38,'endColumnIndex':39},'dimension':'ROWS','fillLength':1996},'useAlternateSeries':False}})
+ if not config.get('installed'):
+  baseline=local_baseline(original)
+  q.append(put(7950,3,39,[['Before_units','Before_hours','Before_rate','Before_forecast','Before_warning','Before_Sep','Before_Oct','Before_Nov','Before_Dec']]))
+  q.append(put(7950,4,39,[[baseline]]))
+  q.append({'updateCells':{'start':{'sheetId':7950,'rowIndex':3,'columnIndex':38},'rows':[{'values':[{'note':original}]}],'fields':'note'}})
+  q.append({'updateCells':{'start':{'sheetId':7950,'rowIndex':1,'columnIndex':0},'rows':[{'values':[{'note':coverage}]}],'fields':'note'}})
+  q.append({'autoFill':{'sourceAndDestination':{'source':{'sheetId':7950,'startRowIndex':3,'endRowIndex':4,'startColumnIndex':38,'endColumnIndex':39},'dimension':'ROWS','fillLength':1996},'useAlternateSeries':False}})
  # Preserve original data-quality gates. Cap both native calendar and comparable-coverage engines.
  q.append(put(7503,4,7,[[cap_calendar_formula(original,4)]]))
  q.append({'autoFill':{'sourceAndDestination':{'source':{'sheetId':7503,'startRowIndex':3,'endRowIndex':4,'startColumnIndex':6,'endColumnIndex':7},'dimension':'ROWS','fillLength':1996},'useAlternateSeries':False}})
