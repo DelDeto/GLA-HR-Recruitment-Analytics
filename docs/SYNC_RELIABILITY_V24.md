@@ -3,10 +3,10 @@
 Status: **runner infrastructure implemented; production end-to-end BLOCKED**.
 The branch now has native Google/Drive I/O, recursive source collection,
 private staging, pinned adapter execution, stable-key upserts, bounded native
-readback, retry/resume, single-writer locking and cross-file audits. It does
-**not** yet have an approved deployment manifest binding the current private
-Lead/PV/OB, fee and V19 bonus business programs to that protocol. Credentials
-are also unavailable in the development session. Do not represent passing
+readback, retry/resume, single-writer locking and cross-file audits. Concrete business bindings and a disabled private manifest now exist. Data
+reconciliation and a credentialed full acceptance run remain blocked. Credentials
+are unavailable in the workspace; GitHub Secrets require an explicitly approved
+execution path in their own environment. Do not represent passing
 infrastructure tests as completed production synchronization.
 
 ## 1. One scheduler and one writer per owned range
@@ -92,7 +92,7 @@ registry A:E and K:L, not user confirmation F:J, and preserves the V2.3 master
 archive/summary/cache. Existing source registry alignment must be verified
 before the batchUpdate is applied.
 
-## 5. Remaining production integration (release blockers)
+## 5. Remaining production integration (release blockers; see latest report)
 
 - Port/call the verified current lead/PV/OB collectors, attendance normalizer
   and V19 bonus engine in a private execution environment. Current GitHub
@@ -315,3 +315,76 @@ The live audit found unresolved fact-region/legacy-key/history conflicts. The
 bindings are release candidates, not an approved migration. Do not enable apply,
 schedules, policy activation or a new workflow based on synthetic tests or a
 connector snapshot replay. See SYNC_RELIABILITY_V24_REPORT.md for exact gates.
+
+
+## 10. Source-aware reconciliation and confirmed additional intake
+
+Native source formula errors are retained with tab/row/column/type and included
+in source fingerprints. Reading an error cell does not reject an entire workbook
+or replace the value with zero. `sync_source_audit` validates each consumer's
+contract and classifies errors by actual use. CRM applicant-ID errors can be
+excluded only when that row has an independent usable phone/CV identity;
+missing identity remains critical. Excluding an audit tab never exempts errors
+in its primary-data consumers. In the live diagnostic, 287 audit errors mirror
+287 Applicants ID errors; only two Applicants rows lack an alternative identity.
+
+The user confirmed that cold/hot/follow-up Sales tabs are new intake, with
+LĐPT default and TTS/IDL SV, IDL Fresher and IDL retained separately.
+`sync_legacy_leads` reads those reviewed layouts, normalizes the phone/date,
+and merges using date/group/identity, with factory in the LĐPT key. Student
+classification retains precedence. Missing dates/phones stay in private
+quarantine and keep the Lead branch PARTIAL; no date is invented. This source
+policy is explicit in private options, not an automatic assumption for an
+unreviewed source. Newly matching tabs can reuse a reviewed parser template;
+unknown or ambiguous layouts fail closed. Exclusion decisions never propagate
+to new tabs by filename alone.
+
+The Lead adapter validates native =N(LEADS_LDPT!...) references against their
+source date/factory headers, writes only the corresponding owned input matrix
+cells and preserves QL_LEADS formulas. The Total LĐPT column is excluded from
+ownership. Direct/historical tables retain provenance and allow verified
+count increases; a count decrease requires reconciliation. Do not bypass that
+guard to replace missing source history with zero.
+
+PV/OB reconciliation preserves installed event IDs, evidenced legacy aliases
+and identical physical roster duplicates. A source row URL alone is never an
+identity. Ambiguous alias groups generate private review artifacts and target
+plan blockers, rather than appending a second event. Existing formula-derived
+group columns are verified against their effective values and never replaced.
+
+`sync_fact_audit` produces private per-row old/proposed values, hashes and
+classification. Provenance-only differences are separate from fee/eligibility
+changes. Existing actual-fee amounts, including unknown-to-number proposals,
+remain immutable until the corresponding review is resolved. No review file
+constitutes an approval or authorizes applying a correction.
+
+The runner retains a fully source-validated normalization for downstream
+read-only diagnostic planning when a target plan fails. Every target still gets
+its own plan result. Execution, including a dry-run readiness claim, retains
+the dependency gates: a blocked PV/OB/attendance plan cannot become a verified
+forecast or reward refresh. Last-good checkpoints never advance in dry-run.
+Only allowlisted counts appear in public diagnostics; source URLs, candidates,
+raw discrepancies and credentials remain in private artifacts.
+
+### Credentialed canary; no automatic workflow change
+
+`python -m src.sync_access_check --scan-sources --read-meta` is a separate,
+read-only capability/source/Meta canary for a credential-bearing environment.
+It authorizes only reviewed resource hashes discovered through bounded native
+master references. It blocks Google mutations, stores raw inputs privately,
+prints counts/status/hashes only and exposes no apply option. A passing canary
+cannot claim READY_FOR_PRODUCTION_DRY_RUN or replace the full V2.4 runner.
+
+A concrete patch was prepared to add this check to the existing test job for
+internal PR #3 only, using existing repository Secrets. It adds no workflow,
+job, trigger or scheduler and leaves the three Meta workflow files unchanged.
+Automatic approval review rejected publishing that workflow modification
+because prior approval is required. The patch remains private and unapplied;
+no credentialed CI canary has run on the strength of that proposal. All workflow
+files remain unchanged. Do not publish or execute it without explicit approval.
+
+The alternative is an existing private runner configured with the credential
+variables and private manifest. A Secrets settings URL cannot export secret
+values into this workspace. Full E2E remains separately BLOCKED until actual
+runtime access and all data/case acceptance gates pass. See the latest report
+for attempt IDs and private manual-review instructions.

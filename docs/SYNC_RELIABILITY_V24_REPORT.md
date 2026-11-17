@@ -1,154 +1,160 @@
-# V2.4 release verification — 17 November 2026
+# V2.4 release report — 17 November 2026
 
-**Release decision: BLOCKED for both A and B. No production sync SUCCESS.**
+**A: BLOCKED. B: BLOCKED. READY_FOR_PRODUCTION_DRY_RUN is not achieved.**
 
-PR #3 remains draft/open/unmerged. No `--apply`, Sheets mutation, new tab,
-workflow, trigger or scheduler activation was performed. Existing Meta workflow
-files and Meta writer code are unchanged. Private personnel inputs, financial
-exports, credentials, deployment programs and the real-ID manifest remain
-outside this public repository.
+Code continuation: `63f83f4cb7fab5723f982ebc2691a2784d9c7419`, PR #3,
+branch `fix/sync-reliability-v24-20261117`. PR remains draft/open/unmerged.
+No production apply, Sheets mutation, tab/UI change, scheduler activation or
+new workflow/trigger occurred. Existing workflow files remain unchanged.
+No personnel data, credential, source URL or private financial export is
+committed to this public repository.
 
-## Implemented and tested
+## Verification and limits
 
-- **115 repository tests PASS**, including 16 added in this continuation.
-- Concrete protocol bindings now call the current Lead/PV/OB collector, exact
-  attendance/fee normalizer, installed forecast V2.2 and four-program V19 reward
-  bundle. Each private program must match its file SHA **and** live deployment
-  anchor; collector/normalizer also match their declared SHA cells.
-- Verified SHA prefixes: collector `ec8f5c56eab2`, normalizer `3dd93fd06816`,
-  XML reader `245a936e90b4`, reward engine `f465aa672644`, sheet adapter
-  `6c3af3f046df`, operations report `ede2de6d0d5b`. Full SHAs are pinned in the
-  private dependency manifest. No fallback to the stale archived normalizer SHA.
-- Adapter options are passed by the runner. Original XLSX bytes are retained
-  0600; native attendance can be materialized locally and deterministically.
-  Newly discovered files are included; unreviewed tabs/schemas remain PARTIAL.
-- Both Google credential environment forms are supported. Mandatory private
-  preflight checks the actual runtime identity's read access and target canEdit
-  capabilities, without issuing a write probe.
-- Direct Meta snapshot capture is separate from the existing writer. The
-  adapter validates content SHA, freshness, account/date/currency scope, totals
-  and stable keys before comparing native active API facts. An unverified
-  empty account remains unknown/review-required.
-- **Corrected a real ownership error:** master `OPS_THUONG!A4` is a native
-  LET/VSTACK output. The writable V19 cache is existing
-  `OPS_KIEM_THU!A2001:V5000`. The live array, program archive and cache headers
-  are now protected. B retains TH_THUONG and its O:R human fields.
-- Independent calendar projection checks a common period without filter edits
-  and must first match every native per-person baseline. Missing values remain
-  distinct from numeric zero. Existing fact parity is a separate check.
+- **136 repository tests PASS locally and both existing CI unit jobs PASS** on
+  code commit `63f83f4`. Runs: `44116035996` and `44116019758`. These jobs did not
+  use repository Secrets or run the credentialed canary; unit success is not
+  production acceptance.
+- The six private deployment-program SHAs remain pinned and matched the current
+  collector/normalizer declared SHA cells. Collector `ec8f5c56eab2`, normalizer
+  `3dd93fd06816`, XML reader `245a936e90b4`, reward engine `f465aa672644`,
+  sheet adapter `6c3af3f046df`, operations report `ede2de6d0d5b`.
+- Full private replay read 17 source files / 184 tabs exactly once per file.
+  Formula errors are retained and audited by the consuming parser, not treated
+  as transport failures or numeric zero. All original source records remain.
+- Replay production mutations: **0**. Last-good checkpoints are unchanged.
+- Protected authored-cell hashes in the replay are unchanged for A/B. Fresh
+  bounded native filters, formula notes, confirmations, fee inputs, master draft
+  policies and selected cache/archive controls also match before/after.
+- Full cached target export scans show zero formula errors. These are cached
+  export checks, not a substitute for a complete credentialed native scan.
+- Independent common-period forecast projection remains PASS for 36
+  month/factory rows (1 September–17 November, LĐPT/all factories), after matching
+  each target's current native per-person baseline. Production filters are not
+  changed. The selected presentation caches still fail detailed native parity
+  because their eligibility windows differ; zero is not coerced to blank.
 
-Synthetic tests additionally cover changed deployment anchors, private immutable
-XLSX blobs, newly discovered native attendance, literal formula-looking input
-strings, incomplete schema coverage, target access, Meta staleness/duplicate
-keys, calendar caps and baseline mismatch. The exact private V19 engine also
-passed the existing synthetic tier, fractional-unit, cap, incomplete-history,
-draft, exit, overlap, six-month, cumulative-milestone and opening-balance
-scenarios. These are not live award approvals.
+## Source formula errors: actual impact
 
-## Live reads, private diagnostics and replay
+The original cached export showed 287 errors in the CRM duplicate-CV audit.
+Fresh native reads also found **287 mirrored errors in Applicants IDs**. This
+is 287 affected records across two locations, not 574 different applicants.
 
-The user-connected Drive/Sheets identity read 11 recruitment workbooks and six
-attendance XLSX files: **17 files, 184 tabs**, including hidden tabs. The folder
-was listed again and still contained the same six attendance files. All source
-data and the private manifest are stored outside the public worktree.
+- Audit-only mirrored cells: 287 excluded from the collector's input scope.
+- Applicants rows with an independent usable phone: 277.
+- Applicants rows with an independent usable CV link: 8.
+- Applicants rows without either alternative: **2, still critical**.
 
-The full private snapshot replay invoked the runner's collect/stage/execute/audit
-path with a transport that forbids writes. Each of the 17 sources was requested
-once. The CRM source was rejected because its duplicate-CV audit tab contains
-**287 formula errors**. Consequently the runner retained 16 parsed files / 173
-tabs and marked every branch PARTIAL, preserving last-good state. No error was
-converted to numeric zero. This replay is **not** a service-account E2E run.
+All exclusions have explicit consumer/header/content evidence. An error in a
+required date, hours or identity field remains blocking. Numeric phone values
+are normalized consistently with the verified collector, including a dropped
+leading zero; source cells are not edited. Exact affected rows/links are in
+private `CAN_DOI_SOAT.md` and `crm-critical-cases.json`. No source formula was
+repaired and no applicant ID was fabricated.
 
-Independent engine diagnostics used collected private inputs without granting
-the failed full-source gate: attendance emitted 11,543 daily and 74 period
-records; both roles' forecast continuity decisions agreed; V19 emitted no
-approved entitlement because no active confirmed policy exists. Diagnostics
-are not release PASS or production updates.
+## Additional Sales intake confirmed by the user
 
-| Production audit | A — master | B — September |
-|---|---|---|
-| Existing UI retained | PASS | PASS |
-| Full cached export formula-error scan | PASS: 0 | PASS: 0 |
-| Protected authored-cell hashes in replay | PASS: unchanged | PASS: unchanged |
-| Fresh bounded native filter/note/price/confirmation reread | PASS: unchanged | PASS: unchanged |
-| Authored-cell count before/after replay | PASS: unchanged | PASS: unchanged |
-| Master V2.3 KPI/cache/archive/draft protections | PASS: enforced in plans | N/A: separate UI retained |
-| Source-to-target service-account E2E | BLOCKED | BLOCKED |
-| Production write/native post-write readback | NOT RUN | NOT RUN |
+The user confirmed that cold/hot/follow-up tabs are new Lead sources, with LĐPT
+default; TTS/IDL SV, IDL Fresher and IDL retain their own groups. The adapter
+now normalizes and deduplicates these sources before aggregation.
 
-Export formulas include Excel adaptation and cached spill cells. They cannot
-authorize replacing a native formula with a fact. Native reads verified critical
-original formula notes, confirmations and the actual bonus-array anchor. Full
-private artifacts were not uploaded as public Actions artifacts.
+The private staging diagnostic contains 3,891 date/phone-qualified additional
+rows and 3,457 duplicate intake records under the documented management key.
+These are source-row/duplicate counts, not a claim of that many new people.
+There remain **1,657 rows without a usable intake date** and **25 dated rows
+requiring identity review**. They are retained privately and not allocated to
+an invented day. The resulting staged totals are not complete or deployed.
 
-## Common-period A/B checks
+## Ownership, event aliases and actual-fee reconciliation
 
-Private equivalent scope: **1 September–17 November 2026, LĐPT, all factories**.
-No production filter was changed.
+- **Lead ownership fixed:** 1,022 native QL_LEADS references are checked against
+  their LEADS_LDPT date/factory cells. Owned input cells are updated in the plan;
+  formula outputs and the Total LĐPT column are preserved. Direct/history
+  provenance is retained. A decrease from a known historical count is blocked
+  for review rather than silently clearing or lowering history.
+- **PV/OB ID preservation:** the adapter recognizes verified legacy event keys,
+  checks source/episode evidence, retains identical physical roster duplicates
+  and preserves native group formulas. **Six alias-review groups per target**
+  remain unresolved; these are the same six groups in the shared source, not
+  twelve different cases. No new duplicate event is appended for those cases.
+- **Actual fees:** 270 private differences are separated into 135 provenance
+  differences and **135 fee/eligibility proposals for three Quanta applicants**.
+  The latter would promote held/unknown revenue to a number; no approved amount
+  is silently changed and no unknown is called zero. Old/proposed hashes,
+  source links and values are retained privately. No correction was applied.
+- **Schema contracts:** every collected tab has a contract or explicit review
+  result. Known parser templates can handle matching new files/tabs; ambiguous
+  and unreviewed layouts remain blocked. Successful download never grants
+  COMPLETE source approval or permission to overwrite F:J.
 
-- PASS: independent calendar matches all 552 applicable native physical rows
-  in A and 496 in B under their respective current baseline windows.
-- PASS: recomputing the same common period matches **36 month/factory rows**
-  across A/B, preserving unknown versus zero.
-- PASS: existing native Lead/PV/OB/actual-fee facts have equal common-scope
-  projections. This proves existing fact parity, not source completeness.
-- FAIL for existing presentation-cache acceptance: production windows remain
-  different. Closed-month detail includes a factory with zero in A versus blank
-  in B due to different eligibility windows. The independent projection explains
-  that mismatch; it does not change B's selected month or certify post-write
-  native results.
+## Latest branch/file result
 
-## Branch-by-branch release gates
+PASS below means the stated diagnostic or plan check only. Overall execution
+readiness remains BLOCKED where its sources, history or dependencies fail.
 
-All six branches remain **PARTIAL in both A and B** in the full runner replay
-because the shared source gate failed. Additional diagnostics establish the
-following gates, which must not be bypassed to get green CI.
+| Branch | Source/normalization diagnostic | A plan | B plan | Release limitation |
+|---|---|---|---|---|
+| Lead | PARTIAL | BLOCKED | BLOCKED | Two critical CRM identities, missing intake dates/phones and historical count-decrease review. |
+| PV/OB | PASS | BLOCKED | BLOCKED | Six legacy alias groups; IDs/history preserved, no duplicate append. |
+| Attendance/fees | PASS | BLOCKED | BLOCKED | Immutable Quanta eligibility/revenue proposals require source reconciliation. |
+| Forecast V2.2 | PASS | PASS | PASS | Execution BLOCKED by upstream plans; no production refresh claimed. |
+| Bonus V19 | PASS, drafts stay inactive | PASS | PASS | Upstream execution BLOCKED; confirmed real policy/award acceptance case is also BLOCKED. |
+| Meta snapshot | BLOCKED in this runtime | BLOCKED | BLOCKED | Fresh direct API snapshot and actual target reconciliation unavailable here. |
 
-| Branch | A | B | Remaining gate |
-|---|---|---|---|
-| Lead | BLOCKED | BLOCKED | Installed QL_LEADS includes legacy formula-derived facts; complete the owned-source/table binding and reconcile history without replacing formulas. |
-| PV/OB | BLOCKED | BLOCKED | Reconcile legacy event identifiers with evidence. Preserve native keys; do not append duplicate hash IDs. Handle existing roster duplicates without deleting physical history. |
-| Attendance/fees | BLOCKED | BLOCKED | Current normalization encounters immutable historical fact conflicts, including status/provenance. Preserve approved prices, source periods, exceptions and last-good facts. |
-| Forecast V2.2 | BLOCKED | BLOCKED | Source/whitelist/attendance prerequisites are not release-ready. Pure common-period projection passes; installed refresh still fails the source gate. |
-| Bonus V19 | BLOCKED | BLOCKED | Master cache mapping is corrected; diagnostic plans pass for that cache and B's append-only output. All 12 drafts stay inactive. No confirmed real award case exists for live acceptance. |
-| Meta snapshot | BLOCKED | BLOCKED | No fresh direct API snapshot is available in this runtime. Cached history is insufficient proof of current account scope. |
+The current native master Meta health contains successful existing-writer
+checkpoints, latest observed 17 November at 14:54:01 ICT. The locked September
+monthly total matches the existing approved checkpoint. These are narrow
+read-only observations: they do not certify new API scope, B freshness or a
+credentialed V2.4 run. Meta writer/watchdog/connection-check workflows and all
+closed Ads decisions remain untouched.
 
-The private production manifest was created with six pinned entrypoints,
-explicit target roles, source roots and ownership rectangles. **It is disabled**:
-deployment_approved=false and single_writer_private_volume=false. Outstanding
-tab contracts are recorded as REVIEW_REQUIRED, never silently approved.
+## Run IDs and credential boundary
 
-## Credential/Actions evidence and exact blockers
+- Source-aware private replay: `35a773353d201c16b507fb0c613b587a51bf394b914bd49d803349dc0d25f5f3`.
+  Evidence mode: CONNECTOR_SNAPSHOT_REPLAY_NOT_CREDENTIALED_E2E.
+  A/B execution states: PARTIAL. Files/tabs: 17/184. Writes: 0.
+- Real service-account CLI attempt: `7e0fdfb4589b422eb652ef01b2521de7`.
+  Exit 2, GOOGLE_SERVICE_ACCOUNT_JSON_MISSING. This failed before a full stage
+  ID or permission result could be created. Do not call it E2E success.
+- Earlier private replay retained for comparison:
+  `d7b87a06b1f7bb81d6b116cd4c89efe8a25afeadfa3ad02a1c253fca7a7cdaa3`.
+  That older run rejected the entire CRM workbook; the source-aware continuation
+  removes that blanket rejection without exempting critical consumed fields.
+- Earlier existing connection-check run `43358332159`, attempt 2, job
+  `133986685338` found required repository Secrets but failed on an empty Meta
+  response. It does not test this dual-target runner or all source permissions.
 
-The actual CLI dry-run against that manifest exited 2 with
-`GOOGLE_SERVICE_ACCOUNT_JSON_MISSING`. Neither that variable nor
-GOOGLE_APPLICATION_CREDENTIALS is present here. A GitHub Secrets settings URL
-does not expose values to this environment or prove permissions on both targets
-and every source. The complete service-account preflight remains **BLOCKED**,
-not PASS or an assertion that sharing is absent.
+Repository Secrets are not injected into this workspace. The read-only
+`sync_access_check` CLI now offers bounded, hash-authorized discovery, actual
+service-account capability/source reads and direct Meta capture in a private
+credential-bearing environment. It blocks Google writes, prints only counts/
+status/hashes and cannot claim full V2.4 readiness even if its own checks pass.
 
-The existing **read-only connection-check** job was rerun once; no workflow was
-created/edited and no scheduled writer was enabled. Run `43358332159`, attempt 2,
-job `133986685338`, on original commit `c3a5992b2bd0`, found all required Secrets
-but **FAILED** on an empty Meta insights response from a configured account.
-That limited job does not exercise the dual-target runner, all source permissions
-or target edit capabilities. It was not retried repeatedly and its empty result
-was not treated as verified zero spend.
+A concrete patch to run that canary inside the existing test job for internal
+PR #3 was prepared. **Automatic approval review rejected the workflow
+modification because prior approval is required.** The patch remains private,
+unapplied and has not run. No workaround was used to read repository Secrets,
+no workflow was changed and no credentialed canary run ID exists for it.
 
-Required next steps before release:
+## Manual actions still needed
 
-1. Supply Google credential and Meta scope/token through an authorized private
-   execution environment; never paste them in chat or commit them. Run actual
-   capability/content preflight for A, B and every source.
-2. Complete semantic schema contracts and resolve the CRM formula-error scope
-   without modifying external sources or suppressing consumed-field errors.
-3. Reconcile Lead formula ownership, event-key aliases/roster duplicates and
-   immutable actual-fee differences with private evidence. Re-run all branches.
-4. Obtain a fresh direct API snapshot and a genuinely confirmed live reward
-   policy/case. Do not activate drafts or invent approval for testing.
-5. Pass a full credentialed E2E DRY RUN and all role-specific/common-scope gates.
-   Production apply/readback requires separate subsequent authorization.
+1. Resolve the two CRM identities and supply actual received dates/identities
+   for retained additional-intake rows where available. Do not infer dates from
+   file modification time or manufacture applicant IDs.
+2. Review historical Lead count decreases and the six event-alias groups using
+   the private before/proposed/source evidence. Do not discard confirmed IDs.
+3. Reconcile the three Quanta applicants' factory/OB termination evidence before
+   promoting the 135 held fee rows. Provenance-only changes are separate.
+4. Either approve the exact private read-only CI patch or supply an existing
+   private runner with the credential variables/manifest. Then verify actual
+   service-account read access to every source and edit capabilities on A/B,
+   and capture/validate a fresh direct Meta snapshot.
+5. Provide an actually confirmed reward policy/case for live acceptance. All
+   12 NHÁP policies remain inactive; no approval or award execution is invented.
+6. Run the credentialed full V2.4 DRY RUN after the relevant gates are resolved;
+   inspect per-target planning, source coverage, native formula errors,
+   protected hashes, filters and equivalent-period A/B values.
 
-Do not merge PR #3, run --apply, enable ChatGPT 08:00/13:00/18:00, change Meta
-Actions, or create a new trigger based on this report. See
-SYNC_RELIABILITY_V24.md for the private runtime and manifest protocol.
+Private review files, role/source IDs, employee rows and financial proposals are
+outside the public repository. No --apply, merge, scheduler change or new
+workflow/trigger is authorized by this report. Both targets remain BLOCKED.
