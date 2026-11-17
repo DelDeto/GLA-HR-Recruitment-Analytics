@@ -128,7 +128,11 @@ the Meta Actions dispatcher or changes a scheduler. Meta's existing writer owns
 META_RAW. The V2.4 Meta adapter must reconcile its verified API snapshot into
 the computed Ads facts without replacing locked monthly/bill decisions. If the
 snapshot is stale or access is missing, return PARTIAL; do not invent daily
-spend. No automatic Meta API call is hidden inside this runner.
+spend. No automatic Meta API call is hidden inside this runner. `sync_meta_snapshot`
+captures a direct API snapshot privately in the credential-bearing environment.
+The pinned Meta adapter validates freshness/scope and compares active native API
+facts read-only; it never overwrites formula-derived QL_ADS or locked bill/month
+decisions. A proven no-op requires per-target row count and fact hash proofs.
 
 ### Private configuration (not committed)
 
@@ -144,7 +148,7 @@ Supply these keys in a private JSON file:
 - `as_of`: explicit business date in Vietnam time.
 - `adapters`: six entries `lead`, `pv_ob`, `attendance`, `forecast`, `bonus`,
   `meta`. Each has `entrypoint` (private local absolute path), `version`,
-  `sha256`, `files` (every dependency filename and SHA256), and optional timeout.
+  `sha256`, `files` (every dependency filename and SHA256), optional timeout and `options` (private business bindings, passed in the input).
   No program is fetched or executed from a Sheet cell automatically. Review
   the current program and verify its SHA before creating this manifest.
 - `reconciliation`: `scope` with from/to/group/factory; layouts A/B with
@@ -188,7 +192,9 @@ same key again. Existing actual-fee facts **must** use immutable_existing=true;
 corrections need a separately reviewed reconciliation/override, not a quiet
 change by this migration. The bonus output cannot claim approval/payment.
 
-The bonus output layout is role-specific: master uses its existing OPS_THUONG;
+The bonus output layout is role-specific: master writes only the existing
+OPS_KIEM_THU!A2001:V5000 cache. OPS_THUONG!A4 is a native LET/VSTACK array
+reading that cache and must remain protected;
 B has no OPS tab and uses existing TH_THUONG computed columns, append-only via
 immutable_existing=true. Never create OPS_THUONG in B. Legacy approval/payment
 columns O:R and all existing award records remain protected. A private adapter
@@ -254,3 +260,58 @@ reordering, prior-month join, inferred stop and rejoin, stale Meta history,
 B-fail retry. Test unchanged monthly T9/T10 Ads decisions, FEVC hour caps,
 Quanta 8h fee cap, Amtran confirmed workday tiers, date-window filters and
 immutability of actual fees and human-owned records.
+
+
+## 9. Concrete business bindings and current release boundary
+
+`sync_business` binds the current private collector and attendance normalizer,
+V2.2 presence/forecast planner, and the four-program V19 reward bundle. Programs
+must match both their local SHA256 and explicitly configured live deployment
+anchors (and declared SHA cells where present). The public repository contains
+protocol code and synthetic tests, not the private deployment programs/data.
+
+A private adapter bundle entrypoint calls `src.sync_business.main`. Its `files`
+manifest must hash the entrypoint and every bundled public Python module.
+`options.programs` supplies each private program's path, SHA and zero-based
+`anchor` (`sheet_id`, `row`, `column`, optional `hash_row`). Missing or changed
+anchors stop execution. `options.source_roles` names the external recruitment
+sources. Original XLSX bytes are retained 0600 in the private state directory;
+normalization never substitutes an export over the original source. Newly
+listed attendance files are included. Native attendance files are converted
+locally with deterministic ZIP metadata and literal strings; incompatible tab
+names/schemas remain blocked rather than silently renamed or skipped.
+
+`options.tab_contracts[file_id][tab_id]` must identify an actual parser and
+verify its header row/column values, or explicitly document a verified excluded
+scope. New tabs and unreviewed layouts remain PARTIAL. Downloading every tab
+alone is insufficient. The current production manifest is deliberately disabled
+and its outstanding schema reviews are recorded privately.
+
+Set `require_service_account_preflight:true`. The real runtime identity must
+read both targets and all source metadata; both targets must report canEdit.
+The subsequent data scan verifies actual content access, not metadata alone.
+Use GOOGLE_SERVICE_ACCOUNT_JSON **or** GOOGLE_APPLICATION_CREDENTIALS in that
+same environment. A GitHub Secrets settings URL cannot reveal secret values to
+this workspace. Do not change an existing Meta workflow or add a trigger to
+work around that boundary. Capture Meta separately, for example:
+
+```sh
+python -m src.sync_meta_snapshot --from-date 2026-01-01 --to-date YYYY-MM-DD --state-dir /private/gla-state
+```
+
+Configure the resulting private snapshot path/SHA, accounts, from date and
+freshness limit as `options.meta_snapshot`. An empty account response remains
+EMPTY_REQUIRES_REVIEW; no unverified numeric zero is manufactured. Snapshot
+validation cannot authorize replacing source facts or bypass bill/month rules.
+
+`sync_scope.check_common` can independently recompute a private common date
+scope after matching every row against each target's current native calendar
+baseline. `compare_facts` checks existing native Lead/PV/OB/actual-fee parity
+without presentation filter edits. This evidence is reported separately from
+native post-write reconciliation and never turns a blocked service-account
+run into SUCCESS. Existing fact parity alone does not certify source completeness.
+
+The live audit found unresolved fact-region/legacy-key/history conflicts. The
+bindings are release candidates, not an approved migration. Do not enable apply,
+schedules, policy activation or a new workflow based on synthetic tests or a
+connector snapshot replay. See SYNC_RELIABILITY_V24_REPORT.md for exact gates.

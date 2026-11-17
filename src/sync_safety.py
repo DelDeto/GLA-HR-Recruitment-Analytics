@@ -89,6 +89,9 @@ def protected_rects(role):
         (6240, 0, 6500, 0, 12),       # rates, overrides, approvals/transactions
         (7401, 0, 3000, 14, 18),      # legacy approval/payment/status columns
         (7507, 0, 6000, 0, 23),
+        (7907, 0, 6500, 0, 22),      # live bonus array, never overwrite its spill
+        (7908, 0, 2000, 0, 24),      # program archives and cache headers
+        (7908, 5000, 6500, 0, 24),   # only A2001:V5000 is computed cache
         (7304, 3, 1000, 12, 15),      # attendance source-period overrides
         (7502, 3, 20000, 8, 9),       # computed Ads filter flag I
     ]

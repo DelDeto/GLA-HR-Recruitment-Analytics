@@ -11,7 +11,7 @@ OWNERS = {
     'pv_ob': {7501, 7601, 7305},
     'attendance': {7851, 7852, 7853, 7304, 7504},
     'forecast': {7950, 7503, 7002},
-    'bonus': {7907, 7401},
+    'bonus': {7908, 7401},
     'meta': {7502},
 }
 
@@ -50,7 +50,7 @@ def validate_owned(requests, snapshot, role, branch, regions):
         sid, r0, r1, c0, c1 = request_rect(request)
         if sid not in OWNERS[branch]:
             raise SyncBlocked('BRANCH_DOES_NOT_OWN_TAB')
-        if branch=='bonus' and ((role=='MASTER_V23' and sid!=7907) or (role=='SEPTEMBER_V22' and sid!=7401)):
+        if branch=='bonus' and ((role=='MASTER_V23' and sid!=7908) or (role=='SEPTEMBER_V22' and sid!=7401)):
             raise SyncBlocked('BONUS_OUTPUT_LAYOUT_DOES_NOT_MATCH_ROLE')
         nr, nc = capacity(snapshot, sid)
         if r1 > nr or c1 > nc:

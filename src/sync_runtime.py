@@ -77,6 +77,26 @@ class PrivateState:
             finally:
                 fcntl.flock(stream, fcntl.LOCK_UN)
 
+    def save_blob(self, name, raw):
+        """Retain the exact input bytes for pinned XLSX normalizers privately."""
+        if Path(name).name != name:
+            raise SyncBlocked('INVALID_STATE_KEY')
+        path = self.root / name
+        if path.is_symlink():
+            raise SyncBlocked('STATE_SYMLINK')
+        if path.exists():
+            if path.read_bytes() != raw:
+                raise SyncBlocked('IMMUTABLE_SOURCE_BLOB_CHANGED')
+            return path
+        fd, tmp = tempfile.mkstemp(dir=self.root)
+        try:
+            with os.fdopen(fd, 'wb') as stream:
+                stream.write(raw); stream.flush(); os.fsync(stream.fileno())
+            os.replace(tmp, path)
+        finally:
+            if os.path.exists(tmp): os.unlink(tmp)
+        return path
+
 
 def request(session, method, url, *, sleep=time.sleep, attempts=6, **kwargs):
     import requests

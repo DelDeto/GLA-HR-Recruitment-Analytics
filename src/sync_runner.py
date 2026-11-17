@@ -115,6 +115,8 @@ def validate_config(config):
 
 def stage_run(config, transport, state, adapters=None):
     validate_config(config)
+    if config.get('require_service_account_preflight'):
+        preflight_access(config,transport,state)
     before = {name: transport.snapshot(t['id']) for name,t in config['targets'].items()}
     for name,snapshot in before.items():
         if snapshot['id'] != config['targets'][name]['id']:
@@ -133,7 +135,8 @@ def stage_run(config, transport, state, adapters=None):
                 raise SyncBlocked('DEPENDENCY_NOT_READY')
             spec = config.get('adapters', {}).get(branch)
             payload = {'branch':branch, 'as_of':config['as_of'], 'sources':bundle,
-                       'targets':working, 'normalized':normalized}
+                       'targets':working, 'normalized':normalized,
+                       'options':(spec or {}).get('options', {})}
             output = adapters[branch](payload) if adapters is not None and branch in adapters else pinned_adapter(spec, payload, state)
             validate_envelope(output, bundle)
             if output.get('validation') != 'PASS':
@@ -141,7 +144,12 @@ def stage_run(config, transport, state, adapters=None):
             if branch != 'forecast' and set(output.get('tables',{})) != {'A','B'}:
                 raise SyncBlocked('EXPLICIT_BOTH_TARGET_TABLES_REQUIRED')
             if branch != 'forecast' and any(not output['tables'][n] for n in ('A','B')):
-                raise SyncBlocked('NO_VERIFIABLE_BRANCH_FACT_TABLE')
+                proof=output.get('read_only_validation',{})
+                if (branch!='meta' or set(proof)!={'A','B'} or
+                    any(output['tables'][n] for n in ('A','B')) or
+                    any(type(proof[n].get('rows'))is not int or proof[n]['rows']<0 or
+                        not re.fullmatch('[0-9a-f]{64}',str(proof[n].get('hash','')))for n in ('A','B'))):
+                    raise SyncBlocked('NO_VERIFIABLE_BRANCH_FACT_TABLE')
             plans = {}
             for name,target in config['targets'].items():
                 changes, guards = [], {}
@@ -185,6 +193,28 @@ def stage_run(config, transport, state, adapters=None):
     run_id = digest(stage)
     state.save('stage-'+run_id+'.json',stage,immutable=True)
     return run_id, stage
+
+
+def preflight_access(config,transport,state):
+    """Check the actual runtime identity's capabilities, without a write probe."""
+    checks={}
+    requested={t['id']:('target',n)for n,t in config['targets'].items()}
+    requested.update({fid:('source',digest(fid))for fid in config.get('source_files',[])})
+    requested.update({fid:('folder',digest(fid))for fid in config.get('source_folders',[])})
+    for fid,(kind,label)in requested.items():
+        try:
+            info=transport.file_info(fid)
+            readable=not info.get('trashed',False)
+            editable=info.get('capabilities',{}).get('canEdit')is True
+            ok=readable and(kind!='target'or editable)
+            checks[label]={'kind':kind,'state':'PASS'if ok else'BLOCKED',
+                           'readable':readable,'can_edit':editable}
+        except Exception:
+            checks[label]={'kind':kind,'state':'BLOCKED','reason':'SERVICE_ACCOUNT_ACCESS_UNVERIFIED'}
+    state.save('access-preflight.json',checks)
+    if any(c['state']!='PASS'for c in checks.values()):
+        raise SyncBlocked('SERVICE_ACCOUNT_SOURCE_OR_TARGET_ACCESS_BLOCKED')
+    return checks
 
 
 def execute_stage(run_id, stage, transport, state, *, apply=False):
@@ -292,6 +322,12 @@ def execute_stage(run_id, stage, transport, state, *, apply=False):
         result['authored_cells_after'] = sum('userEnteredValue' in c for c in final_snapshots.get(name,{'cells':{}})['cells'].values())
     report = {'comparison':comparison, 'run_id':run_id, 'mode':'APPLY' if apply else 'DRY_RUN', 'targets':results,
               'blockers':{b:p.get('reason') for b,p in stage['branches'].items() if p['state']!='READY'}}
+    if not apply and stage['config'].get('private_common_scope'):
+        try:
+            from .sync_scope import check_common
+            report['private_common_scope']=check_common(final_snapshots,stage['config']['private_common_scope'])
+        except Exception as exc:
+            report['private_common_scope']={'state':'FAIL','reason':str(exc)if isinstance(exc,SyncBlocked)else'PRIVATE_PROJECTION_INVALID'}
     state.save('audit-'+run_id+('-apply' if apply else '-dry')+'.json',report)
     return report
 
@@ -304,7 +340,7 @@ def main():
     try:
         config=json.loads(Path(args.config).read_text());state=PrivateState(args.state_dir)
         with state.lock():
-            transport=GoogleTransport.from_env()
+            transport=GoogleTransport.from_env(state)
             if args.resume:
                 if len(args.resume)!=64 or any(c not in '0123456789abcdef'for c in args.resume):
                     raise SyncBlocked('INVALID_RESUME_ID')

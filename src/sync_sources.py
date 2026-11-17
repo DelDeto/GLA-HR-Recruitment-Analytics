@@ -26,31 +26,37 @@ def scalar(value):
 
 
 class GoogleTransport:
-    def __init__(self, session):
+    def __init__(self, session, state=None):
         self.session = session
+        self.state = state
 
     @classmethod
-    def from_env(cls):
+    def from_env(cls, state=None):
         import os
         from google.auth.transport.requests import AuthorizedSession
         from google.oauth2.service_account import Credentials
         raw = os.environ.get('GOOGLE_SERVICE_ACCOUNT_JSON')
-        if not raw:
+        credential_path = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+        if not raw and not credential_path:
             raise SyncBlocked('GOOGLE_SERVICE_ACCOUNT_JSON_MISSING')
         try:
-            cred = Credentials.from_service_account_info(json.loads(raw), scopes=[
+            scopes = [
                 'https://www.googleapis.com/auth/spreadsheets',
-                'https://www.googleapis.com/auth/drive.readonly'])
-        except (ValueError, KeyError):
+                'https://www.googleapis.com/auth/drive.readonly']
+            if raw:
+                cred = Credentials.from_service_account_info(json.loads(raw), scopes=scopes)
+            else:
+                cred = Credentials.from_service_account_file(credential_path, scopes=scopes)
+        except (OSError, ValueError, KeyError):
             raise SyncBlocked('GOOGLE_CREDENTIAL_INVALID') from None
-        return cls(AuthorizedSession(cred))
+        return cls(AuthorizedSession(cred), state)
 
     def json(self, method, url, **kwargs):
         return request(self.session, method, url, **kwargs).json()
 
     def file_info(self, file_id):
         return self.json('GET', DRIVE + '/' + quote(file_id, safe=''), params={
-            'fields': 'id,name,mimeType,modifiedTime,version,trashed', 'supportsAllDrives': 'true'})
+            'fields': 'id,name,mimeType,modifiedTime,version,trashed,capabilities(canEdit,canDownload)', 'supportsAllDrives': 'true'})
 
     def list_folder(self, folder):
         out, token, seen = [], None, set()
@@ -125,7 +131,7 @@ class GoogleTransport:
         before = self.file_info(file_id)
         if before.get('trashed'):
             raise SyncBlocked('SOURCE_TRASHED')
-        mime = before['mimeType']
+        mime = before['mimeType']; blob_path = None
         if mime == 'application/vnd.google-apps.spreadsheet':
             native = self.snapshot(file_id)
             tabs = []
@@ -146,6 +152,8 @@ class GoogleTransport:
             raw = request(self.session, 'GET', DRIVE + '/' + quote(file_id, safe=''),
                           params={'alt': 'media', 'supportsAllDrives': 'true'}).content
             fingerprint = hashlib.sha256(raw).hexdigest()
+            if self.state is not None:
+                blob_path = str(self.state.save_blob(fingerprint + '.xlsx', raw))
             book = openpyxl.load_workbook(io.BytesIO(raw), read_only=True, data_only=True)
             tabs = [{'id': s.title, 'name': s.title, 'hidden': s.sheet_state != 'visible',
                      'rows': [[i, [[j, scalar(v)] for j, v in enumerate(row) if v is not None]]
@@ -157,7 +165,9 @@ class GoogleTransport:
         after = self.file_info(file_id)
         if any(before.get(k) != after.get(k) for k in ('version', 'modifiedTime', 'mimeType')):
             raise SyncBlocked('SOURCE_CHANGED_DURING_READ')
-        return {'file_id': file_id, 'fingerprint': fingerprint, 'metadata': before, 'tabs': tabs}
+        result = {'file_id': file_id, 'fingerprint': fingerprint, 'metadata': before, 'tabs': tabs}
+        if blob_path: result['blob_path'] = blob_path
+        return result
 
 
 def collect_once(transport, folders, files):
