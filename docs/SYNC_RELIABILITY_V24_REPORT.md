@@ -179,8 +179,8 @@ all three Meta workflow files are unchanged. Secrets stay inside Actions.
 | Credentialed check | A | B |
 |---|---|---|
 | Master reference read / 14 reviewed resources discovered | PASS, bounded cells only | NOT_RUN native target scan |
-| Drive capability / canEdit | BLOCKED: SERVICE_DISABLED | BLOCKED: SERVICE_DISABLED |
-| Complete source content / hidden tabs / new files | BLOCKED, no source parsed | BLOCKED, shared source scan |
+| Drive capability / canEdit | PASS: canEdit=true, retry attempt 2 | PASS: canEdit=true, retry attempt 2 |
+| Complete source content / hidden tabs / new files | PARTIAL: 16/17 files, 182 tabs; CTECH 404 | PARTIAL: same shared source scan |
 | Full native formulas / immutable hashes / live filters | BLOCKED in credentialed run | BLOCKED in credentialed run |
 | Equivalent-period live A/B acceptance | BLOCKED | BLOCKED |
 | READY_FOR_PRODUCTION_DRY_RUN | BLOCKED | BLOCKED |
@@ -188,6 +188,38 @@ all three Meta workflow files are unchanged. Secrets stay inside Actions.
 The replay's earlier protected hashes and common-scope result remain separate
 historical evidence. An API configuration failure does not turn missing source
 coverage, unknown values or unchanged production into a successful dry-run.
+
+## After Drive API activation — latest credentialed retry
+
+The user enabled Google Drive API. The same existing read-only job was rerun,
+without changing any workflow or starting the business writer.
+
+- Run **44119457932, attempt 2**, job **134175085074**, diagnostic attempt
+  `9c534c67199f4fdc9cdfe9bd7ef410f6`; code `a459f429`. All **143 tests PASS**.
+- **SERVICE_DISABLED is resolved.** Service-account Drive checks PASS for
+  A/B with **canEdit=true**, and for all source/folder roles except CTECH.
+- Actual content scan lists **17 files**, reads **16 files / 182 tabs**, and
+  fails only the CTECH form with **REMOTE_HTTP_404**. This means inaccessible or
+  missing to that identity; a 404 alone cannot distinguish deleted/incorrect
+  reference from missing sharing. The earlier private connector snapshot had
+  two CTECH tabs, matching the current tab-count gap, but is not a substitute
+  for service-account access. Do not drop the source to manufacture completeness.
+- Formula-error total remains **unknown/null**, because scan coverage is
+  incomplete. No missing source is treated as zero or used to erase last-good.
+- Fresh direct Meta capture **PASS**: 3 accounts, 3,823 daily campaign rows,
+  1 January–17 November 2026, SHA256
+  `714332723c97dd8098a9cecdc79cb10e2780ff749eec774afabdbd602e3bf01c`.
+  Raw inputs remained ephemeral/private. Native Ads parity is still not run.
+- Overall job FAIL/canary BLOCKED is expected for the remaining source 404.
+  Both releases remain BLOCKED. Full business E2E, protected native target
+  scans, current formula/filter checks and equivalent-period native A/B
+  acceptance are NOT RUN by this access canary. Production writes: **0**.
+
+The exact CTECH link and sharing instructions are retained in private review
+material, not committed here. Share the existing source with the service
+account's client_email as Viewer, or correct the reference with source-owner
+proof if that file has moved. A/B edit capabilities are already verified;
+there is no reason to request new credentials or change their UI.
 
 ## Manual actions still needed
 
@@ -198,18 +230,15 @@ coverage, unknown values or unchanged production into a successful dry-run.
    the private before/proposed/source evidence. Do not discard confirmed IDs.
 3. Reconcile the three Quanta applicants' factory/OB termination evidence before
    promoting the 135 held fee rows. Provenance-only changes are separate.
-4. Enable **Google Drive API (`drive.googleapis.com`)** in the consumer project
-   used by the service-account credential. In private, check the credential's
-   `project_id` and select that project at
-   https://console.cloud.google.com/apis/library/drive.googleapis.com . This
-   environment has no Cloud administration tool/permission, so this action must
-   be performed by a project administrator. Never paste the key into chat.
-   After activation, rerun the existing failed job in run `44119457932` (same
-   approved read-only diagnostic). Then verify service-account source content
-   access and canEdit on A/B; do not assume sharing is already correct.
-   The exact CI patch is already approved and executed. A full private runner
-   still needs the disabled private manifest and pinned deployment programs;
-   the canary is not that full runner. Re-capture Meta for final native parity.
+4. Google Drive API activation is now verified; no further activation action
+   is needed. Resolve CTECH's HTTP 404: the source owner should confirm the
+   existing source link and grant Viewer access to the service account's
+   `client_email` from the private credential. Do not paste the key into chat.
+   Then rerun the existing read-only job in run `44119457932` and require 17/17
+   current files with no access errors. Do not remove CTECH from scope.
+   The full private runner still needs its disabled manifest and pinned
+   programs; the canary is not that full runner. Re-capture Meta for native
+   parity in that environment after source and business gates are resolved.
 5. Provide an actually confirmed reward policy/case for live acceptance. All
    12 NHÁP policies remain inactive; no approval or award execution is invented.
 6. Run the credentialed full V2.4 DRY RUN after the relevant gates are resolved;

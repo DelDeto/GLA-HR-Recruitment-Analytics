@@ -394,8 +394,12 @@ service configuration from scopes/access, without response messages or project
 identifiers. Unread source formula-error counts are unknown, never numeric zero.
 The reason-confirming run `44119457932` identifies
 `REMOTE_HTTP_403_SERVICE_DISABLED`: enable Google Drive API in the credential's
-consumer project, then rerun that existing read-only job. Resource sharing and
-edit capabilities remain unverified until the service-configuration gate clears.
+consumer project, then rerun that existing read-only job. The user subsequently
+activated Drive API. Attempt 2 of that run verifies canEdit=true for A/B and
+reads 16/17 files (182 tabs); CTECH remains HTTP 404. Resolve the source's
+identity/sharing and repeat the same check without dropping it from coverage.
+A/B edit capability is verified, while source completeness and full business
+acceptance remain blocked. See the latest report for retry IDs.
 Do not expand the patch into the full business runner or export private inputs
 through public CI. See the report for the remaining data and full-E2E gates.
 
