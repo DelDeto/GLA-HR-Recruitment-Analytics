@@ -5,8 +5,9 @@ The branch now has native Google/Drive I/O, recursive source collection,
 private staging, pinned adapter execution, stable-key upserts, bounded native
 readback, retry/resume, single-writer locking and cross-file audits. Concrete business bindings and a disabled private manifest now exist. Data
 reconciliation and a credentialed full acceptance run remain blocked. Credentials
-are unavailable in the workspace; GitHub Secrets require an explicitly approved
-execution path in their own environment. Do not represent passing
+are unavailable in the workspace. The user approved the exact read-only
+canary patch in the existing PR test job; that scoped path uses GitHub Secrets
+inside Actions only. Do not represent passing
 infrastructure tests as completed production synchronization.
 
 ## 1. One scheduler and one writer per owned range
@@ -366,7 +367,7 @@ forecast or reward refresh. Last-good checkpoints never advance in dry-run.
 Only allowlisted counts appear in public diagnostics; source URLs, candidates,
 raw discrepancies and credentials remain in private artifacts.
 
-### Credentialed canary; no automatic workflow change
+### Approved credentialed read-only canary
 
 `python -m src.sync_access_check --scan-sources --read-meta` is a separate,
 read-only capability/source/Meta canary for a credential-bearing environment.
@@ -378,10 +379,25 @@ cannot claim READY_FOR_PRODUCTION_DRY_RUN or replace the full V2.4 runner.
 A concrete patch was prepared to add this check to the existing test job for
 internal PR #3 only, using existing repository Secrets. It adds no workflow,
 job, trigger or scheduler and leaves the three Meta workflow files unchanged.
-Automatic approval review rejected publishing that workflow modification
-because prior approval is required. The patch remains private and unapplied;
-no credentialed CI canary has run on the strength of that proposal. All workflow
-files remain unchanged. Do not publish or execute it without explicit approval.
+Automatic approval review initially rejected publishing that workflow change
+because prior approval was required. The user then explicitly approved the exact
+private patch. Commit `83478fab90b956abe648401c1ddd210f0ef936dc` changes only
+`tests.yml` (22 additions), leaving all existing triggers and Meta workflow files
+unchanged. The credentialed step runs only on internal PR #3, the named branch,
+and an explicitly marked `[v24-access]` head commit. Push tests skip it.
+
+The first approved canary ran in Actions run `44118492903`. Direct Meta capture
+passed; Google master-reference reads passed but Drive capability/source reads
+returned HTTP 403. This is actual runtime evidence, not a successful full runner.
+The continuation exposes only allowlisted Google reason enums to distinguish
+service configuration from scopes/access, without response messages or project
+identifiers. Unread source formula-error counts are unknown, never numeric zero.
+The reason-confirming run `44119457932` identifies
+`REMOTE_HTTP_403_SERVICE_DISABLED`: enable Google Drive API in the credential's
+consumer project, then rerun that existing read-only job. Resource sharing and
+edit capabilities remain unverified until the service-configuration gate clears.
+Do not expand the patch into the full business runner or export private inputs
+through public CI. See the report for the remaining data and full-E2E gates.
 
 The alternative is an existing private runner configured with the credential
 variables and private manifest. A Secrets settings URL cannot export secret

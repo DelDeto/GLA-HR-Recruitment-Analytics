@@ -5,7 +5,9 @@
 Code continuation: `63f83f4cb7fab5723f982ebc2691a2784d9c7419`, PR #3,
 branch `fix/sync-reliability-v24-20261117`. PR remains draft/open/unmerged.
 No production apply, Sheets mutation, tab/UI change, scheduler activation or
-new workflow/trigger occurred. Existing workflow files remain unchanged.
+new workflow/trigger occurred. After explicit user approval, only the existing
+`tests.yml` job gained the exact read-only canary patch. Its triggers and all
+three Meta workflow files remain unchanged.
 No personnel data, credential, source URL or private financial export is
 committed to this public repository.
 
@@ -14,7 +16,8 @@ committed to this public repository.
 - **136 repository tests PASS locally and both existing CI unit jobs PASS** on
   code commit `63f83f4`. Runs: `44116035996` and `44116019758`. These jobs did not
   use repository Secrets or run the credentialed canary; unit success is not
-  production acceptance.
+  production acceptance. The diagnostic continuation passes **143 local tests**;
+  its live CI results are recorded below.
 - The six private deployment-program SHAs remain pinned and matched the current
   collector/normalizer declared SHA cells. Collector `ec8f5c56eab2`, normalizer
   `3dd93fd06816`, XML reader `245a936e90b4`, reward engine `f465aa672644`,
@@ -99,7 +102,7 @@ readiness remains BLOCKED where its sources, history or dependencies fail.
 | Attendance/fees | PASS | BLOCKED | BLOCKED | Immutable Quanta eligibility/revenue proposals require source reconciliation. |
 | Forecast V2.2 | PASS | PASS | PASS | Execution BLOCKED by upstream plans; no production refresh claimed. |
 | Bonus V19 | PASS, drafts stay inactive | PASS | PASS | Upstream execution BLOCKED; confirmed real policy/award acceptance case is also BLOCKED. |
-| Meta snapshot | BLOCKED in this runtime | BLOCKED | BLOCKED | Fresh direct API snapshot and actual target reconciliation unavailable here. |
+| Meta snapshot | PASS: fresh direct capture in approved CI | BLOCKED | BLOCKED | Native A/B reconciliation and preservation checks are still required. |
 
 The current native master Meta health contains successful existing-writer
 checkpoints, latest observed 17 November at 14:54:01 ICT. The locked September
@@ -130,11 +133,61 @@ service-account capability/source reads and direct Meta capture in a private
 credential-bearing environment. It blocks Google writes, prints only counts/
 status/hashes and cannot claim full V2.4 readiness even if its own checks pass.
 
-A concrete patch to run that canary inside the existing test job for internal
-PR #3 was prepared. **Automatic approval review rejected the workflow
-modification because prior approval is required.** The patch remains private,
-unapplied and has not run. No workaround was used to read repository Secrets,
-no workflow was changed and no credentialed canary run ID exists for it.
+Automatic approval review initially rejected the proposed CI modification for
+lack of prior approval. The user then explicitly approved that exact patch.
+Commit `83478fab90b956abe648401c1ddd210f0ef936dc` changes only `tests.yml`,
+adding 22 lines inside the existing test job. No workflow/job/trigger was added;
+all three Meta workflow files are unchanged. Secrets stay inside Actions.
+
+## Approved credentialed canary evidence
+
+- First canary: run `44118492903`, job `134163032501`, attempt
+  `cece47f5b77d4cf18e0765974f708b33`. Unit tests PASS; live diagnostic exits 2
+  with canary/release BLOCKED. Its separate push run `44118471895` passes and
+  correctly skips the credentialed step.
+- Actual Google Sheets master-reference reads discovered all 14 reviewed
+  resources. Drive capability calls for both A/B and all 12 source/folder roles
+  returned HTTP 403. No canEdit result was obtained; this does not prove missing
+  sharing or an invalid key. Source scan parsed **0 of 11 explicit files**;
+  folder listing also failed. Attendance discovery and formula-error totals
+  therefore remain **unknown**, not zero.
+- Direct Meta Marketing API capture **PASS**: three authorized accounts,
+  3,823 campaign/day rows, 1 January–17 November 2026. Snapshot SHA256:
+  `efa3a0a6ac37cf64a9d036b1095c06b89395a3032959e7973fc83100150b4582`.
+  Raw snapshot stays ephemeral/private and is removed at completion; it was not
+  committed or exported through logs. This is scope/freshness proof only, not
+  A/B cost parity or authorization to replace locked Ads decisions.
+- Zero production writes. Full V2.4 E2E: NOT_RUN_DATA_RELEASE_GATES_REMAIN.
+  Native full target formula scans, protected-range hashes and equal-period
+  A/B acceptance were not completed by this capability canary.
+- Diagnostic continuation `a459f429d3ca07cd2a7d9258f36f896517412631` preserves
+  unread error counts as null and logs only allowlisted Google reason codes.
+  It does not change the approved workflow patch or grant extra permissions.
+- Reason-confirming canary: run **`44119457932`**, job **`134166493419`**,
+  attempt `d6b7801e5dbc492fbe47d2c769f73d65`, commit `a459f429`. All **143 CI
+  unit tests PASS**; the live diagnostic correctly FAILS/returns BLOCKED with
+  **REMOTE_HTTP_403_SERVICE_DISABLED** for all 14 Drive capability calls and
+  all source-scan errors. The Google Drive API is disabled in the credential's
+  consumer project. This is a service-configuration blocker; actual resource
+  sharing and A/B edit capability are still unverified after that gate.
+- The reason-confirming run again captures the direct Meta snapshot PASS:
+  3 accounts / 3,823 rows, same 1 January–17 November scope, SHA256
+  `7bf0639510ae335c9f1837671b4156c69fa49cf74df89d9ce11ca5010b3aa6f7`.
+  SHA differs because capture metadata/timestamps are new; no financial change
+  or A/B parity is inferred from the hash. No raw snapshot was exported.
+
+| Credentialed check | A | B |
+|---|---|---|
+| Master reference read / 14 reviewed resources discovered | PASS, bounded cells only | NOT_RUN native target scan |
+| Drive capability / canEdit | BLOCKED: SERVICE_DISABLED | BLOCKED: SERVICE_DISABLED |
+| Complete source content / hidden tabs / new files | BLOCKED, no source parsed | BLOCKED, shared source scan |
+| Full native formulas / immutable hashes / live filters | BLOCKED in credentialed run | BLOCKED in credentialed run |
+| Equivalent-period live A/B acceptance | BLOCKED | BLOCKED |
+| READY_FOR_PRODUCTION_DRY_RUN | BLOCKED | BLOCKED |
+
+The replay's earlier protected hashes and common-scope result remain separate
+historical evidence. An API configuration failure does not turn missing source
+coverage, unknown values or unchanged production into a successful dry-run.
 
 ## Manual actions still needed
 
@@ -145,10 +198,18 @@ no workflow was changed and no credentialed canary run ID exists for it.
    the private before/proposed/source evidence. Do not discard confirmed IDs.
 3. Reconcile the three Quanta applicants' factory/OB termination evidence before
    promoting the 135 held fee rows. Provenance-only changes are separate.
-4. Either approve the exact private read-only CI patch or supply an existing
-   private runner with the credential variables/manifest. Then verify actual
-   service-account read access to every source and edit capabilities on A/B,
-   and capture/validate a fresh direct Meta snapshot.
+4. Enable **Google Drive API (`drive.googleapis.com`)** in the consumer project
+   used by the service-account credential. In private, check the credential's
+   `project_id` and select that project at
+   https://console.cloud.google.com/apis/library/drive.googleapis.com . This
+   environment has no Cloud administration tool/permission, so this action must
+   be performed by a project administrator. Never paste the key into chat.
+   After activation, rerun the existing failed job in run `44119457932` (same
+   approved read-only diagnostic). Then verify service-account source content
+   access and canEdit on A/B; do not assume sharing is already correct.
+   The exact CI patch is already approved and executed. A full private runner
+   still needs the disabled private manifest and pinned deployment programs;
+   the canary is not that full runner. Re-capture Meta for final native parity.
 5. Provide an actually confirmed reward policy/case for live acceptance. All
    12 NHÁP policies remain inactive; no approval or award execution is invented.
 6. Run the credentialed full V2.4 DRY RUN after the relevant gates are resolved;
