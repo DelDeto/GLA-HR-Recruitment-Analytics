@@ -4,6 +4,7 @@ These checks never access credentials, worker records, or network services.
 The caller must collect source evidence privately and verify native readback.
 """
 import re
+from datetime import date
 
 
 class UnsafeSyncPlan(ValueError):
@@ -20,6 +21,10 @@ def _source_key(source):
         raise UnsafeSyncPlan("Source is missing a canonical factory")
     if not isinstance(month, str) or not re.fullmatch(r"\d{4}-\d{2}-01", month):
         raise UnsafeSyncPlan("Source month must be a YYYY-MM-01 date")
+    try:
+        date.fromisoformat(month)
+    except ValueError:
+        raise UnsafeSyncPlan("Invalid source calendar month") from None
     return factory.strip() + "|" + month[:7]
 
 
@@ -73,38 +78,80 @@ def validate_installed_preflight(config):
             raise UnsafeSyncPlan("Factory-month rows moved; reconcile approvals by key first")
 
 
-def validate_plan_writes(requests, config):
-    """Guard the V2.3 UI, historic trace and F:J confirmation controls."""
-    if not config.get("installed"):
-        return
-    protected = [
-        (7002, 4, 5, 1, 2),           # DOANH_THU B5 selector
-        (7002, 6, 7, 1, 2),           # DOANH_THU B7 page
-        (7002, 14, 16, 0, 12),        # A15:L16 headers and display
-        (7002, 14, 13000, 13, 25),   # N15:Y13000 cache
-        (7002, 1003, 1200, 5, 10),   # F:J user approvals
-        (7903, 0, 2900, 0, 13),      # bonus policy editor
-        (7902, 3500, 4500, 0, 12),  # execution ledger
+def protected_rects(role):
+    common = [
+        (7000, 0, 1000, 0, 12),       # filters, KPI definitions and navigation
+        (7002, 0, 1003, 0, 13),       # entire revenue presentation
+        (7002, 0, 13000, 13, 25),     # live cache and selectors
+        (7002, 1003, 1200, 5, 10),    # human confirmations F:J
+        (7903, 0, 6500, 0, 16),       # all policy inputs including drafts
+        (7902, 0, 6500, 0, 16),       # award UI and execution ledger
+        (6240, 0, 6500, 0, 12),       # rates, overrides, approvals/transactions
+        (7401, 0, 3000, 14, 18),      # legacy approval/payment/status columns
+        (7507, 0, 6000, 0, 23),
+        (7304, 3, 1000, 12, 15),      # attendance source-period overrides
+        (7502, 3, 20000, 8, 9),       # computed Ads filter flag I
     ]
-    if config["workbook_role"] == "MASTER_V23":
-        protected += [
-            (7950, 3, 2000, 38, 47),     # archived AM4:AU2000
-            (7950, 3, 51, 48, 56),       # archived AW4:BD51
-            (7950, 1199, 1343, 48, 54), # live AW1200:BB1343
-        ]
+    if role == 'MASTER_V23':
+        common += [(7401, 0, 3000, 0, 22), (7950, 3, 2000, 38, 47), (7950, 3, 51, 48, 56),
+                   (7950, 1199, 1343, 48, 54)]
+    return common
+
+
+def request_rect(request):
+    """Return the ENTIRE mutated rectangle, fail closed for unsupported requests.
+
+    updateCells.range may clear cells not represented in rows. AutoFill extends
+    beyond the source by fillLength. Cosmetic requests are writes too.
+    """
+    if len(request) != 1:
+        raise UnsafeSyncPlan('Exactly one native request type required')
+    kind, change = next(iter(request.items()))
+    if kind == 'updateCells':
+        if not change.get('fields'):
+            raise UnsafeSyncPlan('Explicit field mask required')
+        if 'range' in change:
+            rect = change['range']
+        elif 'start' in change:
+            start = change['start']; rows = change.get('rows', [])
+            rect = dict(start, startRowIndex=start.get('rowIndex', 0),
+                        startColumnIndex=start.get('columnIndex', 0))
+            rect['endRowIndex'] = rect['startRowIndex'] + len(rows)
+            rect['endColumnIndex'] = rect['startColumnIndex'] + max(
+                (len(row.get('values', [])) for row in rows), default=0)
+        else:
+            raise UnsafeSyncPlan('Missing updateCells geometry')
+    elif kind == 'autoFill':
+        spec = change.get('sourceAndDestination', {})
+        rect = dict(spec.get('source', {})); length = spec.get('fillLength')
+        if type(length) is not int or length < 0:
+            raise UnsafeSyncPlan('Unsupported autofill direction')
+        if spec.get('dimension') == 'ROWS':
+            rect['endRowIndex'] = rect.get('endRowIndex', 0) + length
+        elif spec.get('dimension') == 'COLUMNS':
+            rect['endColumnIndex'] = rect.get('endColumnIndex', 0) + length
+        else:
+            raise UnsafeSyncPlan('Invalid autofill dimension')
+    elif kind == 'repeatCell':
+        rect = change.get('range', {})
+    else:
+        raise UnsafeSyncPlan('Unsupported installed mutation: ' + kind)
+    keys = ('sheetId', 'startRowIndex', 'endRowIndex', 'startColumnIndex', 'endColumnIndex')
+    if any(type(rect.get(k)) is not int for k in keys):
+        raise UnsafeSyncPlan('Mutation must have finite explicit bounds')
+    sid, r0, r1, c0, c1 = (rect[k] for k in keys)
+    if min(sid, r0, c0) < 0 or r1 <= r0 or c1 <= c0:
+        raise UnsafeSyncPlan('Invalid mutation bounds')
+    return sid, r0, r1, c0, c1
+
+
+def validate_plan_writes(requests, config):
+    if not config.get('installed'):
+        return
+    if config.get('workbook_role') not in ROLES:
+        raise UnsafeSyncPlan('Unknown workbook role')
     for request in requests:
-        if "addSheet" in request:
-            raise UnsafeSyncPlan("Installed refresh must not recreate sheets")
-        change = request.get("updateCells", {})
-        start = change.get("start")
-        if not start or change.get("fields") != "userEnteredValue":
-            continue
-        sid = start.get("sheetId")
-        r0 = start.get("rowIndex", 0)
-        c0 = start.get("columnIndex", 0)
-        rows = change.get("rows", [])
-        r1 = r0 + len(rows)
-        c1 = c0 + max((len(row.get("values", [])) for row in rows), default=0)
-        for psid, pr0, pr1, pc0, pc1 in protected:
+        sid, r0, r1, c0, c1 = request_rect(request)
+        for psid, pr0, pr1, pc0, pc1 in protected_rects(config['workbook_role']):
             if sid == psid and r0 < pr1 and r1 > pr0 and c0 < pc1 and c1 > pc0:
-                raise UnsafeSyncPlan("Attempted write to protected UX/policy/confirmation range")
+                raise UnsafeSyncPlan('Attempted write to protected UX/policy/confirmation range')

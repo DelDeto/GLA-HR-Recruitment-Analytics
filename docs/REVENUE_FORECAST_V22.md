@@ -1,5 +1,10 @@
 # Revenue Forecast V2.2
 
+**V2.4 operational precedence:** use `SYNC_RELIABILITY_V24.md` for installed
+refreshes. The master retains UX V2.3, while the September file keeps its own
+V2.2 UI. No V2.4 full end-to-end production deployment has been verified. The
+legacy installation/rollback procedure below is not a scheduled sync runner.
+
 This is a forecast-only addition to both existing production workbooks. The
 calendar, fee-window, rate, special factory policies and actual-fee pipelines
 remain authoritative. Do not publish private run inputs, worker rows, source
@@ -46,14 +51,16 @@ scheduled job or change the existing Ads schedules. For each run:
    fingerprints. Successful parsing is PENDING_CONFIRMATION until confirmed.
    Keep errors as ERROR and missing months as MISSING. Revalidate approval
    fingerprints after any file change. Never silently reuse an old approval.
-4. Preserve all current confirmation inputs. Propagate a confirmation between
-   the two files only when it refers to exactly the same source fingerprint;
-   conflicting confirmations require review. Do not clear source data on error.
+4. Preserve all current confirmation inputs. V2.4 never rewrites human-owned
+   F:J, including cross-file propagation. Conflicts or registry reordering
+   require explicit key-based reconciliation outside the automatic runner.
+   Do not clear source data on error.
 5. Build a private JSON config for **each** workbook with `people`, `sources`,
    `confirmations`, `evaluated_at`, `original_calendar_formula`,
    `original_coverage_formula`, `coverage_existing`, `ui_ground`, and
    `installed`. Employee rows must correspond to native physical rows.
-6. Run `python -m src.forecast_sync --input PRIVATE.json --output PLAN.json`.
+6. The planner command `python -m src.forecast_sync --input PRIVATE.json --output PLAN.json`
+   only builds a plan; V2.4 uses `src.sync_runner` for staging and audited I/O.
    Apply only to that explicitly selected production ID using native Sheets
    batchUpdate. With `installed=true`, existing tabs, protections and UI modes
    are retained. Keep the original snapshot and current user filter selection.
@@ -65,8 +72,10 @@ scheduled job or change the existing Ads schedules. For each run:
 The task must refresh the registry and presence materialization whenever source
 files change. Native formulas immediately recalculate after a valid confirmation
 edit. The visible revenue screen has a monthly/factory before/after view and an
-employee trace view. `FORECAST_V22` remains hidden; no extra user dashboard is
-created.
+employee trace view. On the V2.3 master the before/after view was retired;
+its active monthly-factory view is AW1200:BB1343 and must not be overwritten.
+Archived AM:AU and AW4:BD51 remain protected. `FORECAST_V22` remains hidden;
+no extra user dashboard is created.
 
 No Apps Script project or trigger is deployed by this Python implementation.
 An existing external script can still overwrite formulas; the recurring task

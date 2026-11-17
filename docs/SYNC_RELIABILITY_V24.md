@@ -1,9 +1,13 @@
 # GLA HR sync reliability V2.4 — safe integration contract
 
-Status: **draft implementation**. This repository currently contains Meta Ads sync
-and the V2.2 forecast planner; it does **not** contain a verified end-to-end
-collector/normalizer/bonus runner. The patch below must not be represented as a
-complete dual-workbook production synchronization.
+Status: **runner infrastructure implemented; production end-to-end BLOCKED**.
+The branch now has native Google/Drive I/O, recursive source collection,
+private staging, pinned adapter execution, stable-key upserts, bounded native
+readback, retry/resume, single-writer locking and cross-file audits. It does
+**not** yet have an approved deployment manifest binding the current private
+Lead/PV/OB, fee and V19 bonus business programs to that protocol. Credentials
+are also unavailable in the development session. Do not represent passing
+infrastructure tests as completed production synchronization.
 
 ## 1. One scheduler and one writer per owned range
 
@@ -88,23 +92,157 @@ registry A:E and K:L, not user confirmation F:J, and preserves the V2.3 master
 archive/summary/cache. Existing source registry alignment must be verified
 before the batchUpdate is applied.
 
-## 5. Remaining production integration (NOT implemented by this patch)
+## 5. Remaining production integration (release blockers)
 
 - Port/call the verified current lead/PV/OB collectors, attendance normalizer
   and V19 bonus engine in a private execution environment. Current GitHub
   forecast_sync module only builds plans and does not apply them.
-- Build robust one-run orchestration across both files with source-specific
-  checkpoints, retry/backoff for transient 429/503, pagination, row capacity
-  checks, and accurate PARTIAL when a branch is incomplete.
-- Implement staged batch writes plus bounded readback and two-workbook
-  reconciliation. Do not mark both SUCCESS if only A succeeded; retry B
-  idempotently against the same immutable snapshot.
+- Bind and review the private business adapters with their complete dependency
+  SHA manifests; `src.sync_runner` executes them through the protocol below.
+  Current workspace legacy scripts are **not** silently treated as approved
+  current adapters. Missing adapters yield PARTIAL and preserve last-good state.
 - Recompute bonus engine on actual policy changes, rather than updating only
   a watermark. Do not touch human reward transactions or use hours/8 as
   confirmed work units.
 - Test staging against an isolated **private** copy or read-only dry-run first,
   confirm the seven current A visible tabs and three B visible tabs, then
   explicitly authorize production deployment. No cron added by this PR.
+
+## 7. Implemented runner and operating procedure
+
+New modules: `sync_runtime` (0700/0600 atomic private state, OS lock, backoff),
+`sync_sources` (Google auth, paginated recursive Drive listing, full XLSX/native
+tab reads with source-version stability check), `sync_identity`, `sync_plan`
+(keyed upserts and ownership), `sync_runner` (dependency graph, immutable stage,
+per-target resume/readback), `sync_audit` (same-definition native comparison),
+and `sync_export_audit` (read-only export audit, never a write source).
+
+The installed forecast guard now also rejects `updateCells.range`, wildcard
+field-mask, `autoFill` and cosmetic writes into protected cells. Unsupported
+mutation types, including tab recreation/copy/delete, fail closed. The installed
+forecast plan no longer formats or resizes existing targets. Source overrides
+in TT_NGUON M:O and the computed Ads filter flag are protected too.
+
+The runner never creates a tab/trigger, uploads an XLSX over production, calls
+the Meta Actions dispatcher or changes a scheduler. Meta's existing writer owns
+META_RAW. The V2.4 Meta adapter must reconcile its verified API snapshot into
+the computed Ads facts without replacing locked monthly/bill decisions. If the
+snapshot is stale or access is missing, return PARTIAL; do not invent daily
+spend. No automatic Meta API call is hidden inside this runner.
+
+### Private configuration (not committed)
+
+Supply these keys in a private JSON file:
+
+- `targets.A/B`: explicit IDs, roles MASTER_V23 / SEPTEMBER_V22, and `ownership`
+  per branch. Each ownership rectangle is `[sheetId,r0,r1,c0,c1]` with zero-based,
+  end-exclusive bounds. Read actual capacities from **each** workbook; never
+  copy master capacities or UI into B.
+- `source_folders`, `source_files`: all external roots and Lead/PV/OB files.
+  Roots are traversed once, files deduplicated by ID, all tabs including hidden
+  tabs read. Successful download is not semantic parsing or COMPLETE approval.
+- `as_of`: explicit business date in Vietnam time.
+- `adapters`: six entries `lead`, `pv_ob`, `attendance`, `forecast`, `bonus`,
+  `meta`. Each has `entrypoint` (private local absolute path), `version`,
+  `sha256`, `files` (every dependency filename and SHA256), and optional timeout.
+  No program is fetched or executed from a Sheet cell automatically. Review
+  the current program and verify its SHA before creating this manifest.
+- `reconciliation`: `scope` with from/to/group/factory; layouts A/B with
+  sheet_id, row_start/end, month_col, factory_col, and metric column mappings.
+  For existing V2.3 A use FORECAST_V22 AW1200:BB1343; B uses AW4:BD51. The
+  forecast/actual columns differ. Closed months may be compared inside broader
+  report windows; partial months require the same exact ending date. Unknown
+  actual fees remain unknown, not zero. Filters are never changed by dry-run.
+- `deployment_approved` and `single_writer_private_volume` must both be true
+  to use `--apply`, following a separately approved production deployment.
+
+Do not put any real IDs/worker rows/credentials in public example configs or
+GitHub inputs. The service account needs Sheets access to **both** target IDs
+and Drive read access to every external source/folder. Secrets existing only
+in GitHub Actions are not automatically available to this private runner.
+
+### Adapter protocol (private stdin/stdout JSON)
+
+Input contains branch, as_of, the one shared source bundle, the current staged
+target snapshots and earlier normalized branch results. A/B data is passed
+privately. Stdout must be one JSON object; diagnostics, candidate names or
+credentials must never be printed. The parent captures stdout/stderr privately,
+does not forward exception bodies, and removes Google/Meta credentials from
+the normalization subprocess environment.
+
+Return `version`, `complete:true`, `validation:"PASS"`, `normalized`, `coverage`
+and either `tables:{A:[...],B:[...]}` or `forecast:{A:config,B:config}`. Coverage
+must name **every collected file**, its exact fingerprint, and every tab with
+PARSED or VERIFIED_OUT_OF_SCOPE plus a reason code. Count-only assertions are
+insufficient. Unknown/new schemas cannot be silently skipped. `complete` is a
+statement about semantic coverage, never a request to approve source F:J.
+
+Each fact table has `sheet_id`, `start_row`, `end_row`, sorted `columns`,
+`key_columns`, `expected_headers`, `identity_basis`, `rows`, and optionally
+`immutable_existing`. The key basis must be one of the documented business
+identities. Rows have exactly one value per column; null preserves the old
+value. An empty, verified table may have rows=[], but omitting either target
+or providing no verifiable table is not successful processing. Conflicting
+duplicate keys or changed headers block the branch; retries never append the
+same key again. Existing actual-fee facts **must** use immutable_existing=true;
+corrections need a separately reviewed reconciliation/override, not a quiet
+change by this migration. The bonus output cannot claim approval/payment.
+
+The bonus output layout is role-specific: master uses its existing OPS_THUONG;
+B has no OPS tab and uses existing TH_THUONG computed columns, append-only via
+immutable_existing=true. Never create OPS_THUONG in B. Legacy approval/payment
+columns O:R and all existing award records remain protected. A private adapter
+must validate this actual legacy schema before it can emit a B table; a missing
+or incompatible binding remains a deployment blocker.
+
+Forecast configs must pass the original V2.4 preflight, use notes read from the
+same target, retain physical source-registry key alignment and onboard
+whitelist evidence, and installed=true. Its native autofill is materialized
+into exact formulas for capacity checks and complete native readback. No UI
+or approval input is rewritten.
+
+### Run, resume and audit
+
+```sh
+umask 077
+python -m src.sync_runner --config /private/gla-sync.json --state-dir /private/gla-state
+# Only after private deployment review/authorization:
+python -m src.sync_runner --config /private/gla-sync.json --state-dir /private/gla-state --apply
+python -m src.sync_runner --config /private/gla-sync.json --state-dir /private/gla-state --apply --resume RUN_ID
+```
+
+The default is dry-run. It still performs live reads, normalization, validation
+and immutable staging, but never calls a Sheets mutation or advances last-good
+watermarks. Exit 2 means BLOCKED/PARTIAL, never success. Reports contain reason
+codes/hashes/counts, not source URLs or worker facts. Full artifacts stay 0600
+under the 0700 state directory; do not upload them as public Actions artifacts.
+
+Apply checks human-owned hashes and row-key/owned-cell preimages. HTTP 429/503
+uses bounded backoff and fixed-cell idempotent retries, never append requests.
+Every changed cell is read natively; a final full native scan checks formula
+errors and all protected fields. Only after final audit/reconciliation are
+verified branch last-good checkpoints advanced. A failure of B does not claim
+B success or blindly reapply A. Resume reuses the same immutable snapshot,
+checks its config hash and expiry, and refuses rollback over a newer checkpoint.
+
+The file lock protects one host/shared private state volume. Expiry is recorded
+for diagnostics but does not steal an active OS lock. **Multi-host operation
+requires a distributed fencing lease before deployment.** Sheets does not
+offer cross-workbook transactions or per-cell compare-and-swap. A network
+failure between bounded batches can leave partially applied computed facts;
+the run stays PARTIAL and retries the exact staged cells. The prior last-good
+snapshot remains private and is not erased. No blind whole-sheet rollback is
+performed. Keep all legacy data-writing schedulers paused during migration.
+
+## 8. Verification boundary
+
+Repository tests use synthetic names/IDs and fake transports to exercise real
+write planning, retry, locks, readback mismatch and resume behavior. Live export
+audits inspect cached formula errors and authored-cell hashes but do **not**
+certify a production write, service-account access, Google-only table/chip
+metadata, private adapter completeness or future scheduled execution. These
+remain separate PASS/FAIL/BLOCKED checks in the release report. Historical
+installation notes in other documents are not evidence of a current full sync.
 
 ## 6. Acceptance tests
 

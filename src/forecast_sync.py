@@ -43,7 +43,7 @@ def build_plan(config):
  # Preserve original data-quality gates. Cap both native calendar and comparable-coverage engines.
  q.append(put(7503,4,7,[[cap_calendar_formula(original,4)]]))
  q.append({'autoFill':{'sourceAndDestination':{'source':{'sheetId':7503,'startRowIndex':3,'endRowIndex':4,'startColumnIndex':6,'endColumnIndex':7},'dimension':'ROWS','fillLength':1996},'useAlternateSeries':False}})
- if ix==1:q.append({'updateSheetProperties':{'properties':{'sheetId':7503,'gridProperties':{'columnCount':68}},'fields':'gridProperties.columnCount'}})
+ if ix==1 and not config.get('installed'):q.append({'updateSheetProperties':{'properties':{'sheetId':7503,'gridProperties':{'columnCount':68}},'fields':'gridProperties.columnCount'}})
  q.append(put(7503,4,24,[[cap_calendar_formula(coverage,4)]]))
  q.append({'autoFill':{'sourceAndDestination':{'source':{'sheetId':7503,'startRowIndex':3,'endRowIndex':4,'startColumnIndex':23,'endColumnIndex':24},'dimension':'ROWS','fillLength':1996},'useAlternateSeries':False}})
  if not config.get('installed'):
@@ -59,7 +59,7 @@ def build_plan(config):
  else:
   q.append(put(7002,1004,1,source_table))
  if not config.get('installed'): q.append({'setDataValidation':{'range':{'sheetId':7002,'startRowIndex':1003,'endRowIndex':1003+len(sources),'startColumnIndex':5,'endColumnIndex':6},'rule':{'condition':{'type':'ONE_OF_LIST','values':[{'userEnteredValue':x}for x in ['COMPLETE','PARTIAL','MISSING','ERROR','PENDING_CONFIRMATION']]},'strict':True,'showCustomUi':True}}})
- q.append({'repeatCell':{'range':{'sheetId':7002,'startRowIndex':1003,'endRowIndex':1003+len(sources),'startColumnIndex':1,'endColumnIndex':2},'cell':{'userEnteredFormat':{'numberFormat':{'type':'DATE','pattern':'MM/yyyy'}}},'fields':'userEnteredFormat.numberFormat'}})
+ if not config.get('installed'): q.append({'repeatCell':{'range':{'sheetId':7002,'startRowIndex':1003,'endRowIndex':1003+len(sources),'startColumnIndex':1,'endColumnIndex':2},'cell':{'userEnteredFormat':{'numberFormat':{'type':'DATE','pattern':'MM/yyyy'}}},'fields':'userEnteredFormat.numberFormat'}})
  # Shared filtered monthly/factory summary. Blank costs remain blank when unverified.
  if not (config.get('installed') and config.get('workbook_role')=='MASTER_V23'):
   summary=[]
