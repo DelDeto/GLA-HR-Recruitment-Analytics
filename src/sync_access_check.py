@@ -127,6 +127,7 @@ def run_check(state,*,scan_sources=False,read_meta=False):
     if re.fullmatch(r'\d+',run_id):report['github_run_id']=run_id
     try:
         transport=forbid_writes(GoogleTransport.from_env(state));resources=read_hints(transport,os.getenv('GOOGLE_SHEET_ID',''))
+        report['master_reference_read']={'state':'PASS','resources_discovered':len(resources)}
         report['access']=access_checks(transport,resources)
         if scan_sources and len(resources)==len(RESOURCE_HASHES):
             files=[fid for role,fid in resources.items()if role not in ('A','B','folder')]
@@ -134,7 +135,7 @@ def run_check(state,*,scan_sources=False,read_meta=False):
             state.save('source-bundle.json',bundle,immutable=True)
             report['source_scan']={'state':'PASS'if bundle['transport_scan_complete']else'BLOCKED',
                 'listed_files':bundle['listed_files'],'parsed_files':bundle['parsed_files'],'tabs':bundle['listed_tabs'],
-                'formula_error_cells':sum(len(t.get('formula_errors',[]))for s in bundle['sources']for t in s['tabs']),
+                'formula_error_cells':sum(len(t.get('formula_errors',[]))for s in bundle['sources']for t in s['tabs'])if bundle['transport_scan_complete']else None,
                 'errors':bundle['errors']}
         else:report['source_scan']={'state':'BLOCKED','reason':'RESOURCE_DISCOVERY_INCOMPLETE_OR_SCAN_NOT_REQUESTED'}
     except Exception as exc:

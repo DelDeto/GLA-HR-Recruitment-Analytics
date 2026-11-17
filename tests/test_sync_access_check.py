@@ -68,3 +68,38 @@ def test_passing_canary_cannot_claim_full_v24_readiness(monkeypatch,tmp_path):
     assert out['canary_state']=='PASS'
     assert out['release_state']=='BLOCKED'
     assert out['full_v24_e2e'].startswith('NOT_RUN')
+
+
+def test_unread_sources_have_unknown_formula_error_count(monkeypatch,tmp_path):
+    monkeypatch.setattr(check,'RESOURCE_HASHES',{'A':'a','folder':'f','source':'s'})
+    class Fake:
+        def json(self,*args,**kwargs):return {}
+        def file_info(self,id):return {'capabilities':{'canEdit':True}}
+    monkeypatch.setattr(check.GoogleTransport,'from_env',lambda *args:Fake())
+    monkeypatch.setattr(check,'read_hints',lambda *args:{r:r for r in check.RESOURCE_HASHES})
+    monkeypatch.setattr(check,'collect_once',lambda *args:{'sources':[],'errors':[],
+        'transport_scan_complete':False,'listed_files':1,'parsed_files':0,'listed_tabs':0})
+    out=check.run_check(PrivateState(tmp_path/'private'),scan_sources=True)
+    assert out['master_reference_read']['state']=='PASS'
+    assert out['source_scan']['state']=='BLOCKED'
+    assert out['source_scan']['formula_error_cells']is None
+    assert out['canary_state']=='BLOCKED'
+
+
+@pytest.mark.parametrize('reason,expected',[
+    ('SERVICE_DISABLED','SERVICE_DISABLED'),('accessNotConfigured','SERVICE_DISABLED'),
+    ('ACCESS_TOKEN_SCOPE_INSUFFICIENT','INSUFFICIENT_SCOPE'),
+    ('insufficientPermissions','INSUFFICIENT_SCOPE'),('forbidden','ACCESS_DENIED'),
+    ('SENSITIVE_UNKNOWN_REASON',''),
+])
+def test_http_failure_logs_only_allowlisted_reason_enum(reason,expected):
+    from src.sync_runtime import request
+    class Response:
+        status_code=403
+        def json(self):return {'error':{'message':'SENSITIVE_CREDENTIAL_AND_PROJECT',
+            'details':[{'reason':reason,'metadata':{'consumer':'SENSITIVE_PROJECT'}}]}}
+    class Session:
+        def request(self,*args,**kwargs):return Response()
+    with pytest.raises(SyncBlocked)as caught:request(Session(),'GET','https://example.invalid')
+    assert str(caught.value)=='REMOTE_HTTP_403'+('_'+expected if expected else'')
+    assert 'SENSITIVE'not in str(caught.value)

@@ -98,6 +98,33 @@ class PrivateState:
         return path
 
 
+def remote_error_code(response, code):
+    """Keep only reviewed Google reason enums; never expose response payloads."""
+    result = 'REMOTE_HTTP_' + str(code)
+    if code != 403 or response is None:
+        return result
+    try:
+        error = response.json().get('error', {})
+        reasons = {item.get('reason') for key in ('errors', 'details')
+                   for item in error.get(key, []) if isinstance(item, dict)
+                   and isinstance(item.get('reason'), str)}
+    except (ValueError, TypeError, AttributeError):
+        return result
+    for source, safe in (
+        ('SERVICE_DISABLED', 'SERVICE_DISABLED'),
+        ('accessNotConfigured', 'SERVICE_DISABLED'),
+        ('ACCESS_TOKEN_SCOPE_INSUFFICIENT', 'INSUFFICIENT_SCOPE'),
+        ('insufficientPermissions', 'INSUFFICIENT_SCOPE'),
+        ('ORG_RESTRICTION_VIOLATION', 'ORG_RESTRICTION'),
+        ('rateLimitExceeded', 'RATE_LIMIT'),
+        ('userRateLimitExceeded', 'RATE_LIMIT'),
+        ('forbidden', 'ACCESS_DENIED'),
+    ):
+        if source in reasons:
+            return result + '_' + safe
+    return result
+
+
 def request(session, method, url, *, sleep=time.sleep, attempts=6, **kwargs):
     import requests
     for attempt in range(attempts):
@@ -109,7 +136,7 @@ def request(session, method, url, *, sleep=time.sleep, attempts=6, **kwargs):
             return response
         code = response.status_code if response is not None else 503
         if code not in (429, 500, 502, 503, 504) or attempt + 1 == attempts:
-            raise SyncBlocked('REMOTE_HTTP_' + str(code))
+            raise SyncBlocked(remote_error_code(response, code))
         try:
             retry = float(response.headers.get('Retry-After', '0')) if response is not None else 0
         except ValueError:
