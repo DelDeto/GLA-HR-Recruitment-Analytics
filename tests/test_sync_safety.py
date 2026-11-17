@@ -73,7 +73,7 @@ def test_approvals_do_not_move_with_sources():
 
 @pytest.mark.parametrize("sheet,row,col", [
     (7002, 5, 2), (7002, 7, 2), (7002, 15, 14),
-    (7002, 1004, 6), (7950, 4, 49),
+    (7002, 1004, 6), (7950, 4, 39), (7950, 4, 49),
     (7950, 1200, 49), (7903, 16, 1), (7902, 3501, 1),
 ])
 def test_master_protected_ranges_are_never_written(sheet, row, col):
