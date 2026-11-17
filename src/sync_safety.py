@@ -88,6 +88,7 @@ def validate_plan_writes(requests, config):
     ]
     if config["workbook_role"] == "MASTER_V23":
         protected += [
+            (7950, 3, 2000, 38, 47),     # archived AM4:AU2000
             (7950, 3, 51, 48, 56),       # archived AW4:BD51
             (7950, 1199, 1343, 48, 54), # live AW1200:BB1343
         ]
