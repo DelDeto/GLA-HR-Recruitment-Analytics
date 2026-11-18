@@ -9,6 +9,38 @@ from .sync_deployment import run as source_run
 from .sync_runtime import PrivateState,SyncBlocked
 
 
+RETRYABLE_TARGET_CHANGES={'NATIVE_TARGET_CHANGED_DURING_DRY_RUN',
+                          'SCOPED_COPY_PROTECTED_PREIMAGE_CHANGED'}
+
+
+def run_sources(*,dry_run):
+    """Retry once with entirely fresh inputs after a pre-write target change.
+
+    Never replay a stage, relax a guard, or retry unknown readback failures.
+    Previously verified rows remain native and keyed upserts make recovery safe.
+    """
+    attempts=[]
+    for attempt in range(2):
+        try:
+            with tempfile.TemporaryDirectory(prefix='gla-daily-private-')as folder:
+                result=source_run(PrivateState(folder),scoped_apply=not dry_run)
+        except Exception as exc:
+            result={'state':'PARTIAL','reason':str(exc)if isinstance(exc,SyncBlocked)else'GLA_SOURCE_SYNC_FAILED'}
+        attempts.append(result)
+        targets=result.get('scoped_copy',{}).get('targets',{})
+        if dry_run or attempt or not any(
+            t.get('reason')in RETRYABLE_TARGET_CHANGES for t in targets.values()):break
+        print('GLA_SOURCE_RETRY=FRESH_SNAPSHOT_AFTER_TARGET_CHANGE',flush=True)
+    audits=[{'production_write_requests':r.get('production_writes',0),
+             'targets':{name:{'state':t['state'],'reason':t.get('reason'),
+                              'rows_verified':t.get('rows_verified',0)}
+                        for name,t in r.get('scoped_copy',{}).get('targets',{}).items()}}
+            for r in attempts]
+    result['recovery_attempts']=audits
+    result['production_writes']=sum(a['production_write_requests']for a in audits)
+    return result
+
+
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--days',type=int,default=8)
@@ -19,11 +51,7 @@ def main():
     report={'mode':'DRY_RUN'if args.dry_run else'SCOPED_DAILY_SYNC'}
     try:report['meta']=meta_run(Settings.from_env(args))
     except Exception:report['meta']={'state':'PARTIAL','reason':'META_PREFLIGHT_OR_TRANSPORT_FAILED'}
-    try:
-        with tempfile.TemporaryDirectory(prefix='gla-daily-private-')as folder:
-            report['sources']=source_run(PrivateState(folder),scoped_apply=not args.dry_run)
-    except Exception as exc:
-        report['sources']={'state':'PARTIAL','reason':str(exc)if isinstance(exc,SyncBlocked)else'GLA_SOURCE_SYNC_FAILED'}
+    report['sources']=run_sources(dry_run=args.dry_run)
     print(json.dumps(report,ensure_ascii=False))
     print('GLA_META_STATE='+report['meta']['state'],flush=True)
     print('GLA_FULL_RELEASE=BLOCKED_SOURCE_REVIEW_REQUIRED',flush=True)
