@@ -1,325 +1,37 @@
-# V2.4 release report — 18 November 2026
+# GLA HR V2.4 — Quyết định triển khai ngày 18/11/2026
 
-**A: BLOCKED. B: BLOCKED. READY_FOR_PRODUCTION_DRY_RUN is not achieved.**
+**Giữ trạng thái production hiện tại.** Lead và PV/OB đã có kế hoạch riêng cho các dòng đủ căn cứ trên snapshot. Hai nhánh này là ứng viên triển khai trước, sau khi cùng kế hoạch đó được xác minh bằng FULL DRY RUN trực tiếp và được duyệt ghi. Số dòng được phép ghi ngay hiện tại là **0 trên A và 0 trên B**.
 
-Code continuation: `63f83f4cb7fab5723f982ebc2691a2784d9c7419`, PR #3,
-branch `fix/sync-reliability-v24-20261117`. PR remains draft/open/unmerged.
-No production apply, Sheets mutation, tab/UI change, scheduler activation or
-new workflow/trigger occurred. After explicit user approval, only the existing
-`tests.yml` job gained the exact read-only canary patch. Its triggers and all
-three Meta workflow files remain unchanged.
-No personnel data, credential, source URL or private financial export is
-committed to this public repository.
+Mã triển khai `87cf3f0141bb71466f4f27ba8969a34961651b3b` thuộc PR #3. `--apply`, lịch và các trigger hiện tại giữ nguyên trạng thái. CTECH nằm ngoài phạm vi theo xác nhận của người dùng.
 
-## Verification and limits
+## Quyết định theo nhánh và file
 
-- **136 repository tests PASS locally and both existing CI unit jobs PASS** on
-  code commit `63f83f4`. Runs: `44116035996` and `44116019758`. These jobs did not
-  use repository Secrets or run the credentialed canary; unit success is not
-  production acceptance. The diagnostic continuation passes **143 local tests**;
-  its live CI results are recorded below.
-- The six private deployment-program SHAs remain pinned and matched the current
-  collector/normalizer declared SHA cells. Collector `ec8f5c56eab2`, normalizer
-  `3dd93fd06816`, XML reader `245a936e90b4`, reward engine `f465aa672644`,
-  sheet adapter `6c3af3f046df`, operations report `ede2de6d0d5b`.
-- Full private replay read 17 source files / 184 tabs exactly once per file.
-  Formula errors are retained and audited by the consuming parser, not treated
-  as transport failures or numeric zero. All original source records remain.
-- Replay production mutations: **0**. Last-good checkpoints are unchanged.
-- Protected authored-cell hashes in the replay are unchanged for A/B. Fresh
-  bounded native filters, formula notes, confirmations, fee inputs, master draft
-  policies and selected cache/archive controls also match before/after.
-- Full cached target export scans show zero formula errors. These are cached
-  export checks, not a substitute for a complete credentialed native scan.
-- Independent common-period forecast projection remains PASS for 36
-  month/factory rows (1 September–17 November, LĐPT/all factories), after matching
-  each target's current native per-person baseline. Production filters are not
-  changed. The selected presentation caches still fail detailed native parity
-  because their eligibility windows differ; zero is not coerced to blank.
+Số dòng bên dưới là số dòng vật lý dự kiến thay đổi trong snapshot, tính riêng cho mỗi file. Chúng chưa phải số ghi được xác minh với Google Sheets hiện tại.
 
-## Source formula errors: actual impact
+| Nhánh | A | B | Quyết định |
+|---|---:|---:|---|
+| Lead | 113 dòng, 609 ô | 113 dòng, 609 ô | PARTIAL. Ưu tiên phần đã lập kế hoạch. Giữ 7 dòng đề xuất giảm số lịch sử trên mỗi file và cách ly bản ghi thiếu căn cứ. |
+| PV/OB | 6 dòng, 48 ô | 6 dòng, 48 ô | PARTIAL. Ưu tiên 6 sự kiện bổ sung. Giữ 105 mục đối soát mỗi file gồm khóa, định danh và hồ sơ thiếu mã. Giữ ghi chú và nguồn của sự kiện lịch sử. |
+| Công và phí thực tế | 0 | 0 | Giữ nguyên. PV/OB còn PARTIAL. Giữ 270 dòng khác biệt lịch sử mỗi file, gồm 135 khác biệt nguồn hoặc ghi chú và 135 đề xuất đổi phí hoặc điều kiện của Quanta. |
+| Forecast V2.2 | 0 được xét ghi | 0 được xét ghi | Giữ nguyên. Có kế hoạch kỹ thuật 2.549 dòng trên mỗi file nhưng phụ thuộc công và PV/OB. Đối soát theo bộ lọc hiện tại chưa đạt. |
+| Thưởng V19 | 0 | 0 | Giữ nguyên 12 chính sách NHÁP và nhật ký. Thiếu ca nghiệm thu đã xác nhận và phụ thuộc công chưa đạt. |
+| Meta | 0 | 0 | Chỉ đọc để đối soát. API đã PASS trong job trước. Cần snapshot trực tiếp trong cùng lần chạy và đối chiếu native A/B. Giữ các tổng đã chốt. |
 
-The original cached export showed 287 errors in the CRM duplicate-CV audit.
-Fresh native reads also found **287 mirrored errors in Applicants IDs**. This
-is 287 affected records across two locations, not 574 different applicants.
+Nếu một nguồn thiếu toàn bộ dữ liệu cần thiết, nhánh tiêu thụ nguồn đó báo PARTIAL và giữ last-good. Runner giữ riêng kế hoạch và checkpoint của từng nhánh trên mỗi file. Phần hợp lệ của kế hoạch PARTIAL có thể được duyệt bằng hash tương ứng khi có phê duyệt ghi riêng. Việc ghi phần đó giữ nguyên last-good và không mở khóa các nhánh phụ thuộc. Bản ghi cách ly vẫn nằm trong đầu vào private và không được tự sửa hoặc tự điền.
 
-- Audit-only mirrored cells: 287 excluded from the collector's input scope.
-- Applicants rows with an independent usable phone: 277.
-- Applicants rows with an independent usable CV link: 8.
-- Applicants rows without either alternative: **2, still critical**.
+## Bằng chứng và giới hạn
 
-All exclusions have explicit consumer/header/content evidence. An error in a
-required date, hours or identity field remains blocking. Numeric phone values
-are normalized consistently with the verified collector, including a dropped
-leading zero; source cells are not edited. Exact affected rows/links are in
-private `CAN_DOI_SOAT.md` and `crm-critical-cases.json`. No source formula was
-repaired and no applicant ID was fabricated.
+- **Kiểm chứng quyền và vận chuyển dữ liệu trực tiếp** trong run `44219333231`, job `134516998914`. Service account canEdit trên A/B, đọc đủ 16/16 file và 182 tab. Meta Marketing API trả 3.837 dòng từ 3 tài khoản qua 18/11. Lần này ghi nhận 2.045 ô lỗi công thức nguồn. Số lỗi này cần phân loại bằng consumer trong lần FULL DRY RUN hiện tại.
+- **Chạy lại đủ nhánh trên snapshot private 17/11** với run `44e43ec531ef4aa591015ce864b31f1f07604dbff593147edf397acf43c18742`. Đọc 16 file và 182 tab với mỗi file đọc một lần. Đối chiếu quyền sở hữu vùng ghi, khóa và giá trị trước ghi của từng dòng dự kiến. Hash vùng bảo vệ và hash giá trị nhập trước/sau giữ nguyên trên cả hai file. Quét toàn bộ ô snapshot của A/B thấy 0 lỗi công thức. Đọc lại vùng dự kiến chạy trên bản snapshot. Xác minh đọc lại qua API và công thức sau thay đổi cần lần chạy trực tiếp.
+- **Phân loại lỗi ở snapshot 17/11**. Trong 574 ô lỗi đã phân loại, 572 thuộc trường không được dùng hoặc có định danh thay thế kiểm chứng được. Hai hồ sơ CRM có lỗi định danh tiêu thụ được giữ cách ly. Cơ chế mới cách ly 3.185 dòng Lead theo trường thực tế gồm 3.038 thiếu ngày, 145 thiếu định danh và 2 lỗi công thức trường tiêu thụ. Các tab Sales bổ sung còn 1.657 dòng chưa có ngày và 25 dòng cần định danh. Các con số này thuộc snapshot 17/11. Phạm vi 2.045 ô lỗi ngày 18/11 chưa được phân loại.
+- **Đối soát A/B trên snapshot**. Cùng kỳ 01/09–17/11, nhóm LĐPT và tất cả nhà máy, các fact Lead, PV/OB và phí thực tế khớp. Dự báo quy về 36 dòng tháng × nhà máy khớp với kết quả tính độc lập. Cache hiển thị native chưa khớp (`NATIVE_CROSS_FILE_MISMATCH`). Bộ lọc của từng file giữ nguyên.
+- **FULL DRY RUN trực tiếp** dừng trước bước đọc tại attempt `1f6340c86f4545c09d9c42c388bb4cf6` do `GOOGLE_SERVICE_ACCOUNT_JSON_MISSING`. Workspace chứa manifest private và chương trình đã pin SHA, còn credential đã PASS chỉ được cấp vào job chẩn đoán hiện có. Số ghi production và số checkpoint được nâng đều bằng 0. A/B vẫn PARTIAL trong replay và BLOCKED đối với quyết định ghi.
+- **153 kiểm thử PASS** tại CI run `44223809572` và workspace. Run CI này kiểm tra mã triển khai. Job chẩn đoán truy cập trước đó cung cấp bằng chứng quyền riêng.
 
-## Additional Sales intake confirmed by the user
+## Việc cần quyết định hoặc cung cấp
 
-The user confirmed that cold/hot/follow-up tabs are new Lead sources, with LĐPT
-default; TTS/IDL SV, IDL Fresher and IDL retain their own groups. The adapter
-now normalizes and deduplicates these sources before aggregation.
+1. **Môi trường FULL DRY RUN.** Cho phép runner private hiện có nhận credential Google và Meta đang dùng từ kho bí mật của tổ chức, hoặc cung cấp vị trí runtime private đã nhận các biến đó. Quyền chia sẻ Google của service account hiện tại đã PASS. Lệnh chạy dùng bản manifest `round6-deployment-decision/production-manifest.json` và state directory chỉ chủ sở hữu truy cập. Chạy `python -m src.sync_runner --config PRIVATE_MANIFEST --state-dir PRIVATE_STATE` trong runtime đó. Runner đọc lại A/B và toàn bộ nguồn, chụp Meta trong cùng runtime, xác minh các chương trình với vị trí SHA còn hiện hành và xuất kế hoạch theo file/nhánh.
+2. **Phê duyệt ghi từng phần sau kết quả trực tiếp.** Duyệt đúng số dòng và hash kế hoạch Lead và PV/OB trên từng file. Các dòng đang giữ được tách khỏi lần phê duyệt này. Giữ last-good cho các nhánh PARTIAL.
+3. **Chỉ xác nhận các ngoại lệ khi cần đưa chúng vào dữ liệu.** Bổ sung ngày hoặc định danh có căn cứ cho Lead, xác nhận 7 dòng giảm số lịch sử nếu có đính chính, xác minh hồ sơ và khóa PV/OB khi bổ sung. Phí Quanta yêu cầu bảng công và ngày nghỉ có chứng từ trước khi đổi điều kiện. Thưởng yêu cầu một chính sách thực tế đã xác nhận cùng ca nghiệm thu. Các ngoại lệ này có thể tiếp tục cách ly trong khi duyệt các dòng độc lập đủ căn cứ.
 
-The private staging diagnostic contains 3,891 date/phone-qualified additional
-rows and 3,457 duplicate intake records under the documented management key.
-These are source-row/duplicate counts, not a claim of that many new people.
-There remain **1,657 rows without a usable intake date** and **25 dated rows
-requiring identity review**. They are retained privately and not allocated to
-an invented day. The resulting staged totals are not complete or deployed.
-
-## Ownership, event aliases and actual-fee reconciliation
-
-- **Lead ownership fixed:** 1,022 native QL_LEADS references are checked against
-  their LEADS_LDPT date/factory cells. Owned input cells are updated in the plan;
-  formula outputs and the Total LĐPT column are preserved. Direct/history
-  provenance is retained. A decrease from a known historical count is blocked
-  for review rather than silently clearing or lowering history.
-- **PV/OB ID preservation:** the adapter recognizes verified legacy event keys,
-  checks source/episode evidence, retains identical physical roster duplicates
-  and preserves native group formulas. **Six alias-review groups per target**
-  remain unresolved; these are the same six groups in the shared source, not
-  twelve different cases. No new duplicate event is appended for those cases.
-- **Actual fees:** 270 private differences are separated into 135 provenance
-  differences and **135 fee/eligibility proposals for three Quanta applicants**.
-  The latter would promote held/unknown revenue to a number; no approved amount
-  is silently changed and no unknown is called zero. Old/proposed hashes,
-  source links and values are retained privately. No correction was applied.
-- **Schema contracts:** every collected tab has a contract or explicit review
-  result. Known parser templates can handle matching new files/tabs; ambiguous
-  and unreviewed layouts remain blocked. Successful download never grants
-  COMPLETE source approval or permission to overwrite F:J.
-
-## Latest branch/file result
-
-PASS below means the stated diagnostic or plan check only. Overall execution
-readiness remains BLOCKED where its sources, history or dependencies fail.
-
-| Branch | Source/normalization diagnostic | A plan | B plan | Release limitation |
-|---|---|---|---|---|
-| Lead | PARTIAL | BLOCKED | BLOCKED | Two critical CRM identities, missing intake dates/phones and historical count-decrease review. |
-| PV/OB | PASS | BLOCKED | BLOCKED | Six legacy alias groups; IDs/history preserved, no duplicate append. |
-| Attendance/fees | PASS | BLOCKED | BLOCKED | Immutable Quanta eligibility/revenue proposals require source reconciliation. |
-| Forecast V2.2 | PASS | PASS | PASS | Execution BLOCKED by upstream plans; no production refresh claimed. |
-| Bonus V19 | PASS, drafts stay inactive | PASS | PASS | Upstream execution BLOCKED; confirmed real policy/award acceptance case is also BLOCKED. |
-| Meta snapshot | PASS: fresh direct capture in approved CI | BLOCKED | BLOCKED | Native A/B reconciliation and preservation checks are still required. |
-
-The current native master Meta health contains successful existing-writer
-checkpoints, latest observed 17 November at 14:54:01 ICT. The locked September
-monthly total matches the existing approved checkpoint. These are narrow
-read-only observations: they do not certify new API scope, B freshness or a
-credentialed V2.4 run. Meta writer/watchdog/connection-check workflows and all
-closed Ads decisions remain untouched.
-
-## Run IDs and credential boundary
-
-- Source-aware private replay: `35a773353d201c16b507fb0c613b587a51bf394b914bd49d803349dc0d25f5f3`.
-  Evidence mode: CONNECTOR_SNAPSHOT_REPLAY_NOT_CREDENTIALED_E2E.
-  A/B execution states: PARTIAL. Files/tabs: 17/184. Writes: 0.
-- Real service-account CLI attempt: `7e0fdfb4589b422eb652ef01b2521de7`.
-  Exit 2, GOOGLE_SERVICE_ACCOUNT_JSON_MISSING. This failed before a full stage
-  ID or permission result could be created. Do not call it E2E success.
-- Earlier private replay retained for comparison:
-  `d7b87a06b1f7bb81d6b116cd4c89efe8a25afeadfa3ad02a1c253fca7a7cdaa3`.
-  That older run rejected the entire CRM workbook; the source-aware continuation
-  removes that blanket rejection without exempting critical consumed fields.
-- Earlier existing connection-check run `43358332159`, attempt 2, job
-  `133986685338` found required repository Secrets but failed on an empty Meta
-  response. It does not test this dual-target runner or all source permissions.
-
-Repository Secrets are not injected into this workspace. The read-only
-`sync_access_check` CLI now offers bounded, hash-authorized discovery, actual
-service-account capability/source reads and direct Meta capture in a private
-credential-bearing environment. It blocks Google writes, prints only counts/
-status/hashes and cannot claim full V2.4 readiness even if its own checks pass.
-
-Automatic approval review initially rejected the proposed CI modification for
-lack of prior approval. The user then explicitly approved that exact patch.
-Commit `83478fab90b956abe648401c1ddd210f0ef936dc` changes only `tests.yml`,
-adding 22 lines inside the existing test job. No workflow/job/trigger was added;
-all three Meta workflow files are unchanged. Secrets stay inside Actions.
-
-## Approved credentialed canary evidence
-
-- First canary: run `44118492903`, job `134163032501`, attempt
-  `cece47f5b77d4cf18e0765974f708b33`. Unit tests PASS; live diagnostic exits 2
-  with canary/release BLOCKED. Its separate push run `44118471895` passes and
-  correctly skips the credentialed step.
-- Actual Google Sheets master-reference reads discovered all 14 reviewed
-  resources. Drive capability calls for both A/B and all 12 source/folder roles
-  returned HTTP 403. No canEdit result was obtained; this does not prove missing
-  sharing or an invalid key. Source scan parsed **0 of 11 explicit files**;
-  folder listing also failed. Attendance discovery and formula-error totals
-  therefore remain **unknown**, not zero.
-- Direct Meta Marketing API capture **PASS**: three authorized accounts,
-  3,823 campaign/day rows, 1 January–17 November 2026. Snapshot SHA256:
-  `efa3a0a6ac37cf64a9d036b1095c06b89395a3032959e7973fc83100150b4582`.
-  Raw snapshot stays ephemeral/private and is removed at completion; it was not
-  committed or exported through logs. This is scope/freshness proof only, not
-  A/B cost parity or authorization to replace locked Ads decisions.
-- Zero production writes. Full V2.4 E2E: NOT_RUN_DATA_RELEASE_GATES_REMAIN.
-  Native full target formula scans, protected-range hashes and equal-period
-  A/B acceptance were not completed by this capability canary.
-- Diagnostic continuation `a459f429d3ca07cd2a7d9258f36f896517412631` preserves
-  unread error counts as null and logs only allowlisted Google reason codes.
-  It does not change the approved workflow patch or grant extra permissions.
-- Reason-confirming canary: run **`44119457932`**, job **`134166493419`**,
-  attempt `d6b7801e5dbc492fbe47d2c769f73d65`, commit `a459f429`. All **143 CI
-  unit tests PASS**; the live diagnostic correctly FAILS/returns BLOCKED with
-  **REMOTE_HTTP_403_SERVICE_DISABLED** for all 14 Drive capability calls and
-  all source-scan errors. The Google Drive API is disabled in the credential's
-  consumer project. This is a service-configuration blocker; actual resource
-  sharing and A/B edit capability are still unverified after that gate.
-- The reason-confirming run again captures the direct Meta snapshot PASS:
-  3 accounts / 3,823 rows, same 1 January–17 November scope, SHA256
-  `7bf0639510ae335c9f1837671b4156c69fa49cf74df89d9ce11ca5010b3aa6f7`.
-  SHA differs because capture metadata/timestamps are new; no financial change
-  or A/B parity is inferred from the hash. No raw snapshot was exported.
-
-| Credentialed check | A | B |
-|---|---|---|
-| Master reference read / 13 active resources discovered | PASS, bounded cells only | NOT_RUN native full target scan |
-| Drive capability / canEdit | PASS: canEdit=true, retry attempt 2 | PASS: canEdit=true, retry attempt 2 |
-| Active source content scan | PASS: 16/16 files, 182 tabs | PASS: same shared source scan |
-| Full native formulas / immutable hashes / live filters | BLOCKED in credentialed run | BLOCKED in credentialed run |
-| Equivalent-period live A/B acceptance | BLOCKED | BLOCKED |
-| READY_FOR_PRODUCTION_DRY_RUN | BLOCKED | BLOCKED |
-
-The replay's earlier protected hashes and common-scope result remain separate
-historical evidence. An API configuration failure does not turn missing source
-coverage, unknown values or unchanged production into a successful dry-run.
-
-## After Drive API activation — latest credentialed retry
-
-The user enabled Google Drive API. The same existing read-only job was rerun,
-without changing any workflow or starting the business writer.
-
-- Run **44119457932, attempt 2**, job **134175085074**, diagnostic attempt
-  `9c534c67199f4fdc9cdfe9bd7ef410f6`; code `a459f429`. All **143 tests PASS**.
-- **SERVICE_DISABLED is resolved.** Service-account Drive checks PASS for
-  A/B with **canEdit=true**, and for all source/folder roles except CTECH.
-- Actual content scan lists **17 files**, reads **16 files / 182 tabs**, and
-  fails only the CTECH form with **REMOTE_HTTP_404**. This means inaccessible or
-  missing to that identity; a 404 alone cannot distinguish deleted/incorrect
-  reference from missing sharing. The earlier private connector snapshot had
-  two CTECH tabs, matching the current tab-count gap, but is not a substitute
-  for service-account access. Do not drop the source to manufacture completeness.
-- Formula-error total remains **unknown/null**, because scan coverage is
-  incomplete. No missing source is treated as zero or used to erase last-good.
-- Fresh direct Meta capture **PASS**: 3 accounts, 3,823 daily campaign rows,
-  1 January–17 November 2026, SHA256
-  `714332723c97dd8098a9cecdc79cb10e2780ff749eec774afabdbd602e3bf01c`.
-  Raw inputs remained ephemeral/private. Native Ads parity is still not run.
-- Overall job FAIL/canary BLOCKED is expected for the remaining source 404.
-  Both releases remain BLOCKED. Full business E2E, protected native target
-  scans, current formula/filter checks and equivalent-period native A/B
-  acceptance are NOT RUN by this access canary. Production writes: **0**.
-
-The exact CTECH link and sharing instructions are retained in private review
-material, not committed here. Share the existing source with the service
-account's client_email as Viewer, or correct the reference with source-owner
-proof if that file has moved. A/B edit capabilities are already verified;
-there is no reason to request new credentials or change their UI.
-
-## Manual actions still needed
-
-1. Reclassify the latest 2,045 native source formula-error cells against actual
-   consumer contracts in the private full runner; do not exempt them based on
-   the older 287-error export. The earlier two unresolved CRM identities remain
-   historical open review cases until fresh proof resolves them. Supply actual received dates/identities
-   for retained additional-intake rows where available. Do not infer dates from
-   file modification time or manufacture applicant IDs.
-2. Review historical Lead count decreases and the six event-alias groups using
-   the private before/proposed/source evidence. Do not discard confirmed IDs.
-3. Reconcile the three Quanta applicants' factory/OB termination evidence before
-   promoting the 135 held fee rows. Provenance-only changes are separate.
-4. CTECH is no longer a required active input: the user explicitly confirmed
-   it is not used. No sharing action is required for that source. This approved
-   scope change supersedes the earlier instruction not to omit CTECH. Keep
-   existing historical facts and snapshots; never silently lower prior totals.
-   The current full private runner still needs a credential-bearing environment,
-   its disabled manifest and verified pinned deployment programs. The canary
-   does not execute the full business graph or preserve its ephemeral snapshots
-   for a later run; capture Meta and targets again in that private environment.
-5. Provide an actually confirmed reward policy/case for live acceptance. All
-   12 NHÁP policies remain inactive; no approval or award execution is invented.
-6. Run the credentialed full V2.4 DRY RUN after the relevant gates are resolved;
-   inspect per-target planning, source coverage, native formula errors,
-   protected hashes, filters and equivalent-period A/B values.
-
-Private review files, role/source IDs, employee rows and financial proposals are
-outside the public repository. No --apply, merge, scheduler change or new
-workflow/trigger is authorized by this report. Both targets remain BLOCKED.
-
-## User-confirmed unused CTECH source — 18 November
-
-The user stated that CTECH is not used. Commit `07458de4` records an exact,
-resource-hash-bound exclusion rather than treating a missing source as zero.
-
-- Canary discovery/permission requirements and the disabled private manifest
-  exclude this source from active intake. Other sources remain required.
-- The verified legacy collector has a fixed list of forms. A scoped adapter
-  explicitly marks CTECH USER_CONFIRMED_UNUSED; it does not modify the deployed
-  program or its SHA, suppress another missing source, or reuse a stale cache.
-- Retained snapshots give CTECH an explicit VERIFIED_OUT_OF_SCOPE reason.
-  Its two old tabs are not counted as current active coverage. Historical
-  production facts, source snapshots and nondecreasing count guards remain.
-- The previously staged normalized Lead rows contain no CTECH provenance.
-  This is a narrow replay observation, not proof of complete production history.
-- A new disabled private manifest pins the current adapter dependencies and
-  records the user's scope decision. It has not executed the full V2.4 graph.
-- Local tests: **148 PASS**, including exact-source exclusion, changed-identity
-  rejection, other-source failure propagation and retained-snapshot scope.
-  Credentialed canary results for the revised active scope are recorded below.
-
-The first revised-scope canary (run `44218673622`, job `134514808541`,
-commit `07458de4`) verifies all 13 active resource capabilities, including A/B
-canEdit. It reads 14/16 files, 91 tabs, but reaches HTTP 429 on the two large
-Sales sources. CTECH is correctly excluded, not the cause of this failure.
-Meta capture passes for 3 accounts / 3,837 rows through 18 November. Incomplete
-formula-error totals remain unknown. No source is dropped for a quota failure.
-
-Commit `7522eea2` makes HTTP 429 retries wait a full 60-second quota window;
-other transient statuses retain bounded backoff. Tests verify the exact same
-request is retried and missing-source errors remain visible. This fixes the
-old total retry-delay budget of about 31 seconds, which could expire before
-Sheets' per-minute quota reset. A fresh credentialed retry is recorded below.
-
-A targeted private replay additionally invokes the actual SHA-verified collector
-against the earlier 17 November snapshot with CTECH removed: PASS on 16 source
-files, no excluded cache opened, zero production writes. This verifies the
-legacy adapter boundary, not fresh source coverage, a full business run or a
-new 18 November deployment-anchor check. The six private program hashes and
-prior native anchor evidence remain separate from the credentialed canary.
-
-## Latest revised-scope canary — PASS, release still BLOCKED
-
-Run **`44219333231`**, job **`134516998914`**, diagnostic attempt
-`61a97aa23f5f4995bf353cb2eb283edb`, code **`7522eea2`**:
-
-- **148 CI tests PASS**; credentialed read-only canary **PASS**.
-- All **13 active resource** capability checks PASS; A/B canEdit=true.
-- **16/16 files, 182 tabs**, no transport errors. The quota-window retry fixes
-  the preceding partial scan without removing any active Sales source.
-- CTECH remains explicitly USER_CONFIRMED_UNUSED, outside current active
-  coverage; no historical row or source file is deleted.
-- Native source scan observes **2,045 formula-error cells**. This is a fresh
-  count of cells across the active source set, not applicants. The canary does
-  not classify them by business consumer and cannot certify their impact.
-  Prior 17 November audit classifications and two critical CRM cases must be
-  revalidated against this current snapshot; do not assume all current errors
-  are harmless or reuse an old error count as current evidence. Raw source
-  contents are private/ephemeral, so a fresh full private run must collect and
-  classify them again. Access PASS does not mean business validation PASS.
-- Direct Meta capture PASS: 3 accounts, **3,837 campaign/day rows**, **1 January
-  through 18 November 2026**, snapshot SHA256
-  `6b45638f4ae522f7f08df088b4c6f9686ea3e657f74342211fc2dc100481a1b7`.
-  No native cost parity or permission to replace closed totals is inferred.
-- Production writes **0**; full business E2E NOT_RUN_DATA_RELEASE_GATES_REMAIN.
-  Native target formula/protected-hash/filter checks, current dependency anchors,
-  equivalent-period A/B acceptance, event aliases, immutable Quanta fees and an
-  actually confirmed reward-policy case remain separate release gates.
-
-Google access/API configuration and the user-confirmed CTECH scope decision no
-longer block the access canary. A/B overall readiness remains BLOCKED; there is
-no production deployment, merge, scheduler or trigger change.
+Bản ghi người lao động, nội dung manifest, nguồn riêng và chứng cứ chi tiết được giữ trong các thư mục private. Không merge, thay workflow, bật lịch, tạo trigger hay ghi Sheets trong lần này.
