@@ -1,4 +1,4 @@
-name: GLA HR — Meta Ads daily sync V1.1
+name: GLA HR — Verified daily sync V2.4
 
 on:
   workflow_dispatch:
@@ -29,10 +29,7 @@ on:
         type: string
         default: ''
   schedule:
-    - cron: '15 0 * * *' # primary: 07:15 ICT
-    - cron: '25 0 * * *' # automatic retry: 07:25 ICT
-    - cron: '45 0 * * *' # automatic retry: 07:45 ICT
-    - cron: '15 1 * * *' # automatic retry: 08:15 ICT
+    - cron: '0 1,6,11 * * *' # 08:00, 13:00, 18:00 Asia/Ho_Chi_Minh
 
 permissions:
   contents: read
@@ -45,7 +42,7 @@ concurrency:
 jobs:
   sync:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     env:
       GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
       META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
@@ -53,6 +50,7 @@ jobs:
       META_AD_ACCOUNT_IDS: ${{ secrets.META_AD_ACCOUNT_IDS }}
       META_API_VERSION: v27.0
       META_SYNC_DAYS: 8
+      GLA_V24_SERIALIZED_WRITER: gla-meta-ads-daily-sync
       RUN_DAYS: ${{ inputs.days || '8' }}
       RUN_DRY_RUN: ${{ inputs.dry_run || false }}
       SCHEDULE_CRON: ${{ github.event.schedule || '' }}
@@ -63,6 +61,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: 1f0bf388a2eb16436d3ddf70b8ee3bd888dba325
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -86,7 +86,7 @@ jobs:
           if [ -z "$META_AD_ACCOUNT_IDS" ]; then
             echo 'Missing GitHub Actions Secret META_AD_ACCOUNT_IDS' >&2; exit 1
           fi
-      - name: Direct Meta API to Google Sheet
+      - name: Verified Meta A/B and eligible source facts
         shell: bash
         run: |
           if [ -n "$HISTORY_START" ]; then
@@ -99,12 +99,8 @@ jobs:
           ARGS=(--days "$RUN_DAYS")
           if [ "$RUN_DRY_RUN" = 'true' ]; then ARGS+=(--dry-run); fi
           if [ "$GITHUB_EVENT_NAME" = 'schedule' ]; then
-            if [ "$SCHEDULE_CRON" = '15 0 * * *' ]; then
-              ARGS+=(--run-kind daily)
-            else
-              ARGS+=(--skip-if-synced --run-kind retry)
-            fi
+            ARGS+=(--run-kind daily)
           else
             ARGS+=(--run-kind manual)
           fi
-          python -m src.meta_sync "${ARGS[@]}"
+          python -m src.sync_daily "${ARGS[@]}"
