@@ -72,3 +72,14 @@ Khi nghiệm thu đủ và được duyệt ghi riêng, dùng lại lịch hiệ
 - `production_writes=0`, `release_state=BLOCKED`, `full_v24_e2e=NOT_RUN_DATA_RELEASE_GATES_REMAIN`. Canary không giữ bản dữ liệu raw sau job; không phải bộ dữ liệu để giả lập một lần FULL DRY RUN mới.
 
 Bản sửa `4693178ba26a086814504dc814da1050193066f9` có **159 tests PASS** tại workspace và CI push `44258957234`, PR `44258963991`. Hai CI mới không chạy bước canary và không thay thế bằng chứng kiểm thử trực tiếp ở trên.
+
+
+## Chuẩn bị triển khai runner lần đầu — thông tin bổ sung 18/11/2026
+
+Người dùng cho biết có thể chưa từng cài runner private V2.4. Vì vậy không yêu cầu người dùng tìm một runtime đã cài sẵn. Thông tin manifest/bundle private trong báo cáo cũ chỉ là bằng chứng của workspace trước; không chứng minh còn một dịch vụ vận hành hiện tại. Cần chuẩn bị triển khai lần đầu.
+
+Đã đọc lại các ô mã nguồn được chỉ định trên A và khôi phục nguyên bytes của sáu chương trình vào thư mục tạm private: collector, normalizer, XML reader và ba chương trình thưởng. SHA256 của collector và normalizer khớp ô hash khai báo hiện hành; bốn chương trình thưởng có hash inventory riêng và đều qua phân tích cú pháp. **Chưa thực thi các chương trình này trong bước khôi phục, chưa có manifest hoàn chỉnh được nghiệm thu, chưa cài một dịch vụ chạy lịch.** Không đưa nội dung mã private, ID nguồn, nhân sự hoặc credentials vào repository public.
+
+Phát hiện dependency còn thiếu trong requirements public: chương trình XML reader đã triển khai sử dụng `lxml.etree`, nhưng requirements chưa khai báo lxml. Đã bổ sung dependency để môi trường cài mới không lỗi import ở nhánh thưởng. Thay đổi này không bật chính sách thưởng, không thay đổi số liệu và không cấp quyền ghi.
+
+Phương án triển khai đề xuất: tận dụng GitHub Actions có credentials hiện hữu cho môi trường chỉ đọc đầu tiên; đóng gói các chương trình pin SHA và manifest disabled vào vùng tạm riêng của job. Chưa thay workflow hoặc thêm job trong bước này. Sau khi rà soát đầy đủ hợp đồng schema và cấu hình đối soát, mới nối runner với job chỉ đọc. GitHub-hosted job tạm thời chưa đủ cho production yêu cầu state bền vững và khóa một writer; phải thiết kế lưu trữ private/checkpoint trước khi bật lại lịch cũ. Không coi khôi phục mã hoặc cài dependencies là hoàn thành FULL DRY RUN.
