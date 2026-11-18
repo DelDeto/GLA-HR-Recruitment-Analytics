@@ -4,6 +4,7 @@ __pycache__/
 .env.*
 !.env.example
 *.json
+!src/sync_schema_registry.json
 !package.json
 *.key
 service-account*.json

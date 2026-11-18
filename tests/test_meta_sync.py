@@ -118,6 +118,8 @@ class FakeSheets:
         }[tab]
     def write_ranges(self, changes, mode="RAW"):
         self.changes.append((mode, changes))
+    def verify_ranges(self, changes, mode="RAW"):
+        pass
 
 
 def make_settings(dry_run):

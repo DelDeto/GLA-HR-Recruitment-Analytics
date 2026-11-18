@@ -275,10 +275,15 @@ class GoogleSheets:
     def _request(self, method: str, endpoint: str, **kwargs) -> dict[str, Any]:
         suffix = endpoint if endpoint.startswith(":") else f"/{endpoint.lstrip('/')}" if endpoint else ""
         url = f"{BASE_URL}/{self.id}" + suffix
-        try:
-            response = self.http.request(method, url, timeout=90, **kwargs)
-        except requests.RequestException as exc:
-            raise SyncError("Google Sheets API request failed; check connectivity and permissions") from exc
+        for attempt in range(6):
+            try:
+                response = self.http.request(method, url, timeout=90, **kwargs)
+            except requests.RequestException:
+                if attempt == 5:
+                    raise SyncError("Google Sheets API request failed after bounded retries") from None
+                time.sleep(min(30, 2 ** attempt)); continue
+            if response.status_code not in (429,500,502,503,504) or attempt == 5: break
+            time.sleep(60 if response.status_code == 429 else min(30, 2 ** attempt))
         if response.status_code >= 400:
             raise SyncError(f"Google Sheets API HTTP {response.status_code}; check share permission, scopes, tab names and API activation")
         return response.json()
@@ -303,6 +308,23 @@ class GoogleSheets:
                 g = p.get("gridProperties", {})
                 return int(g.get("rowCount", 0)), int(g.get("columnCount", 0))
         raise SyncError(f"Required tab {sheet_name} not present")
+
+    def verify_ranges(self, changes, mode="RAW"):
+        """Read native values/formulas before accepting the SUCCESS marker."""
+        for offset in range(0,len(changes),40):
+            chunk=changes[offset:offset+40]
+            result=self._request('GET','values:batchGet',params={
+                'ranges':[r for r,rows in chunk], 'valueRenderOption':'FORMULA',
+                'dateTimeRenderOption':'SERIAL_NUMBER'})
+            actual=result.get('valueRanges',[])
+            if len(actual)!=len(chunk):raise SyncError('Native readback range coverage mismatch')
+            for response,(_,expected) in zip(actual,chunk):
+                values=response.get('values',[])
+                for i,row in enumerate(expected):
+                    got=values[i]if i<len(values)else[]
+                    got=got+['']*max(0,len(row)-len(got))
+                    wanted=[v[1:]if mode=='USER_ENTERED'and isinstance(v,str)and v.startswith("'")else v for v in row]
+                    if got!=wanted:raise SyncError('Native values or formula readback mismatch')
 
 
 def group_changes(planned: list[tuple[int, list[object]]], tab: str) -> list[tuple[str, list[list[object]]]]:
@@ -343,7 +365,8 @@ def campaign_updates(existing: list[list[object]], incoming: list[list[object]],
     for i,(id_,name) in enumerate(sorted(new.items()), start=last+1):
         # Mapping intentionally does not silently auto-assign an ambiguous factory.
         factory = "Pegatron" if re.search(r"\bpegatron\b", name, re.I) else "CHƯA GÁN"
-        batch.append(["'" + id_, name, factory,
+        literal_name="'"+name
+        batch.append(["'" + id_, literal_name, factory,
                       f'=SUMIFS(META_RAW!$D$2:$D$6000,META_RAW!$B$2:$B$6000,A{i},META_RAW!$A$2:$A$6000,">="&TODAY()-29,META_RAW!$A$2:$A$6000,"<="&TODAY())',
                       f'=SUMIFS(META_RAW!$G$2:$G$6000,META_RAW!$B$2:$B$6000,A{i},META_RAW!$A$2:$A$6000,">="&TODAY()-29,META_RAW!$A$2:$A$6000,"<="&TODAY())',
                       "RÕ" if factory=="Pegatron" else "CẦN XÁC MINH",
@@ -465,15 +488,19 @@ def sync(settings: Settings, meta: MetaClient | None = None, sheets: GoogleSheet
     # RAW writes use RAW valueInputOption; campaign formulas must use USER_ENTERED
     # and therefore are submitted separately after the raw data.
     sheet.write_ranges(changes)
+    sheet.verify_ranges(changes)
     if camp_changes:
         sheet.write_ranges(camp_changes, mode="USER_ENTERED")
+        sheet.verify_ranges(camp_changes, mode="USER_ENTERED")
     # This is the commit marker. If any write above fails, no SUCCESS is recorded;
     # the independent retry/watchdog will safely upsert again on a later run.
     finished_at = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).strftime("%Y-%m-%d %H:%M:%S")
     health_record = [today.isoformat(), account_signature(settings.accounts), finished_at,
                      "SUCCESS", len(fresh), len(proposed), appended,
                      sum(len(rows) for _, rows in camp_changes), settings.run_kind]
-    sheet.write_ranges([(f"'{HEALTH_TAB}'!A{status_target}:I{status_target}", [health_record])])
+    checkpoint=[(f"'{HEALTH_TAB}'!A{status_target}:I{status_target}", [health_record])]
+    sheet.write_ranges(checkpoint)
+    sheet.verify_ranges(checkpoint)
     result = {"dry_run": False, "fetched": len(fresh), "changed": len(proposed),
               "appended": appended, "new_campaigns": sum(len(rows) for _, rows in camp_changes)}
     LOGGER.info("Meta sync completed: %s", result)
