@@ -15,6 +15,7 @@ import uuid
 from zoneinfo import ZoneInfo
 from .sync_runtime import PrivateState,SyncBlocked
 from .sync_sources import GoogleTransport,collect_once,SHEETS
+from .sync_source_scope import UNUSED_SOURCE_HASHES
 
 
 # Hashes authorize only the resources named in the task. No private source
@@ -31,7 +32,6 @@ RESOURCE_HASHES={
  'form_epu':'1d45147decf2230d76e625ae725ab730dfab99826ba2b255de741836fec1e321',
  'form_gtvt':'21c08448685d41b847f6aaf3844a609a83e05ad907606eda3c8ec2cdb9fbe3be',
  'form_fevc_gtvt':'46c653bf116cb742c7c2e4539414e93367d9b3444adc4a343a73ef1a5399ff75',
- 'form_ctech':'5444e18f6db88cb3896f3cd06e2dcc4c91fd82d3de379a398efa1312c6ca822b',
  'form_uet':'6851f5a8a74b739158d7c3984adf7bf1f641a7c88e2d38b29d64a83f871320de',
  'folder':'73eee506b7887a19ab88caf19ea4ad965729ed7f881d3edba21dc70ff1324ffc'}
 HINT_CELLS=[(6204,10,4),(6240,117,1),(6240,1799,7),(6240,2337,7),
@@ -123,6 +123,7 @@ def meta_check(state):
 def run_check(state,*,scan_sources=False,read_meta=False):
     report={'attempt_id':uuid.uuid4().hex,'mode':'CREDENTIALED_READ_ONLY_CANARY',
             'production_writes':0,'release_state':'BLOCKED','full_v24_e2e':'NOT_RUN_DATA_RELEASE_GATES_REMAIN'}
+    report['source_exclusions']={role:'USER_CONFIRMED_UNUSED'for role in UNUSED_SOURCE_HASHES}
     run_id=os.getenv('GITHUB_RUN_ID','')
     if re.fullmatch(r'\d+',run_id):report['github_run_id']=run_id
     try:

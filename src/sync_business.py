@@ -16,6 +16,7 @@ from pathlib import Path
 import sys
 import tempfile
 from .sync_runtime import SyncBlocked, digest
+from .sync_source_scope import active_roles, exclude_legacy_forms, UNUSED_SOURCE_HASHES
 
 
 def v(snapshot, sid, row, col):
@@ -173,10 +174,10 @@ def legacy_environment(payload,options,work,*,collector=False):
 
 
 def recruitment(payload,options,work,*,with_leads=True):
-    roles=options['source_roles'];sources={s['file_id']:s for s in payload['sources']['sources']}
+    roles=active_roles(options['source_roles']);sources={s['file_id']:s for s in payload['sources']['sources']}
     from .sync_source_audit import resolve_contracts
     resolved=dict(options,tab_contracts={fid:resolve_contracts(source,options)for fid,source in sources.items()})
-    required=(['sale_le','sale_thao','sale_yen','crm','pv','ob','form_epu','form_gtvt','form_fevc_gtvt','form_ctech','form_uet']if with_leads else['pv','ob'])
+    required=(['sale_le','sale_thao','sale_yen','crm','pv','ob','form_epu','form_gtvt','form_fevc_gtvt','form_uet']if with_leads else['pv','ob'])
     if any(roles.get(k)not in sources for k in required):raise SyncBlocked('RECRUITMENT_SOURCE_MISSING')
     for role in required:
         filename='opt-form-'+role[5:]+'.json' if role.startswith('form_') else 'opt-'+role+'_full.json'
@@ -188,7 +189,7 @@ def recruitment(payload,options,work,*,with_leads=True):
         (work/filename).write_text(json.dumps(native_source(source),ensure_ascii=False))
     with legacy_environment(payload,options,work,collector=True):
         collector=load_verified(options['programs']['collector'],payload['targets']['A'],'gla_current_collector')
-        with redirect_stdout(io.StringIO()):
+        with exclude_legacy_forms(collector,options['source_roles']), redirect_stdout(io.StringIO()):
             leads,issues=collector.build_leads()if with_leads else([],[])
             events,whitelist,eventissues=collector.build_events(leads)
         legacy={}
@@ -198,7 +199,8 @@ def recruitment(payload,options,work,*,with_leads=True):
             leads,duplicate_count=merge_receipts(leads,legacy['receipts'])
             legacy['merged_duplicates']=duplicate_count
     return {'leads':leads,'events':events,'onboard_all':whitelist,'issues':issues+eventissues,
-            'asof':payload['as_of'],'source_roles':roles,'legacy_sales_audit':legacy}
+            'asof':payload['as_of'],'source_roles':roles,'legacy_sales_audit':legacy,
+            'source_exclusions':{role:'USER_CONFIRMED_UNUSED'for role in UNUSED_SOURCE_HASHES}}
 
 
 def lead_adapter(payload,options,work):
@@ -214,7 +216,7 @@ def lead_adapter(payload,options,work):
     for (day,fac,group),count in sorted(counts.items()):
         row=[serial(day),fac,group,count,'Verified current collector; stable person/day/group key','Sales / CRM / Form']
         (recent if day>='2026-09-01'else history).append(row)
-    out=envelope(payload,options,result,set(options['source_roles'].values()));out['tables']={}
+    out=envelope(payload,options,result,set(active_roles(options['source_roles']).values()));out['tables']={}
     legacy_counts=result.get('legacy_sales_audit',{}).get('counts',{})
     if legacy_counts.get('needs_review')or legacy_counts.get('unknown_date'):
         out['complete']=False;out['validation']='PARTIAL'
