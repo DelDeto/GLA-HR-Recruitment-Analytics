@@ -72,7 +72,7 @@ def adapter(payload,options,work):
     raw=path.read_bytes()
     if hashlib.sha256(raw).hexdigest()!=spec['sha256']:raise SyncBlocked('META_SNAPSHOT_SHA_MISMATCH')
     expected=validate(json.loads(raw),spec,payload['as_of'])
-    proofs={}
+    proofs={};blocked={}
     for role,s in payload['targets'].items():
         actual={}
         for row in range(3,next(p['gridProperties']['rowCount']for p in s['sheets']if p['sheetId']==7502)):
@@ -81,12 +81,17 @@ def adapter(payload,options,work):
             if v(s,7502,row,13)not in ('API','API_HISTORY'):continue
             if v(s,7502,row,14)!=1:continue
             k=(account,day,str(v(s,7502,row,5)))
-            if k in actual:raise SyncBlocked('ACTIVE_META_SOURCE_DUPLICATE')
+            if k in actual:
+                blocked[role]='ACTIVE_META_SOURCE_DUPLICATE'
+                break
             actual[k]=(v(s,7502,row,4),v(s,7502,row,10))
-        if actual!=expected:raise SyncBlocked('META_NATIVE_FACTS_DIFFER_FROM_DIRECT_API')
+        if role in blocked:continue
+        if actual!=expected:
+            blocked[role]='META_NATIVE_FACTS_DIFFER_FROM_DIRECT_API'
+            continue
         proofs[role]={'rows':len(actual),'hash':digest(sorted(actual.items()))}
     out=envelope(payload,options,{'proofs':proofs},set())
-    out['tables']={'A':[],'B':[]};out['read_only_validation']=proofs
+    out['tables']={'A':[],'B':[]};out['read_only_validation']=proofs;out['plan_blockers']=blocked
     return out
 
 

@@ -62,7 +62,7 @@ def validate_owned(requests, snapshot, role, branch, regions):
             raise SyncBlocked('META_FILTER_FORMULA_IS_NOT_A_FACT')
 
 
-def table_upserts(snapshot, table):
+def table_upserts(snapshot, table, *, quarantined=None):
     """Upsert only supplied facts. Unknown/None never erases last-good data.
 
     coordinates and keys are zero-based. Stable key columns belong to the
@@ -99,7 +99,7 @@ def table_upserts(snapshot, table):
     nondecreasing=set(table.get('nondecreasing_columns',[]))
     allowed_counts={6203:set(range(1,16))-{11},7500:{3},7600:{3}}
     if nondecreasing-allowed_counts.get(sid,set()):raise SyncBlocked('MONOTONIC_FIELD_IS_NOT_A_LEAD_COUNT')
-    allowed_preserve={7500:{4,5},7600:{4,5},7305:{6,8},7851:{10,11,20},7852:{10,11,15}}
+    allowed_preserve={7500:{4,5},7600:{4,5},7501:{6,7},7601:{6,7},7305:{6,8},7851:{10,11,20},7852:{10,11,15}}
     if preserve-allowed_preserve.get(sid,set()):raise SyncBlocked('PRESERVE_COLUMN_NOT_PROVENANCE')
     for row in range(start, end):
         values = [scalar(value(snapshot, sid, row, col)) for col in keys]
@@ -138,25 +138,37 @@ def table_upserts(snapshot, table):
                 raise SyncBlocked('TARGET_CAPACITY_EXCEEDED')
             index[stable] = physical; tail += 1
         for row in physical:
+            row_changes, row_guards = [], {}
+            hold = None
             for c in keys:
-                guards[key(sid, row, c)] = {'before': value(snapshot, sid, row, c), 'after': entered(values[c])}
+                row_guards[key(sid, row, c)] = {'before': value(snapshot, sid, row, c), 'after': entered(values[c])}
             for c in cols:
                 if values[c] is None or values[c] == '':continue
                 before, after = value(snapshot, sid, row, c), entered(values[c])
                 if before == after:continue
                 if existed and c in nondecreasing and 'numberValue'in before:
                     if 'numberValue'not in after or after['numberValue']<before['numberValue']:
-                        raise SyncBlocked('HISTORICAL_LEAD_COUNT_DECREASE_REVIEW')
+                        hold = 'HISTORICAL_LEAD_COUNT_DECREASE_REVIEW'
+                        break
                 if 'formulaValue'in before and c in table.get('verified_formula_columns',[]):
                     effective=snapshot['cells'][key(sid,row,c)].get('effectiveValue',{})
                     if effective!=after:raise SyncBlocked('PRESERVED_FORMULA_VALUE_DIFFERS')
-                    guards[key(sid,row,c)]={'before':before,'after':before};continue
+                    row_guards[key(sid,row,c)]={'before':before,'after':before};continue
                 if existed and c in preserve:continue
                 if existed and table.get('immutable_existing'):
-                    raise SyncBlocked('HISTORICAL_FACT_CONFLICT')
+                    hold = 'HISTORICAL_FACT_CONFLICT'
+                    break
                 if 'formulaValue' in before:
                     raise SyncBlocked('ATTEMPT_TO_REPLACE_FORMULA_WITH_FACT')
-                changes.append({'key': key(sid, row, c), 'before': before, 'after': after})
+                row_changes.append({'key': key(sid, row, c), 'before': before, 'after': after})
+            if hold:
+                if quarantined is None:
+                    raise SyncBlocked(hold)
+                quarantined.append({'sheet_id':sid,'row':row+1,'reason':hold,
+                                    'identity_hash':stable})
+                continue
+            changes.extend(row_changes)
+            guards.update(row_guards)
     return changes, guards
 
 

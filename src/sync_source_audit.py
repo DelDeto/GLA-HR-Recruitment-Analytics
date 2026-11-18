@@ -88,3 +88,55 @@ def resolve_contracts(source,options):
         unique={digest(m):m for m in matches}
         if len(unique)==1:result[str(tab['id'])]=next(iter(unique.values()))
     return result
+
+
+# Columns checked by the pinned recruitment collector. Dates are required
+# even where the legacy collector simply skips an undated row.
+LEAD_FIELDS = {
+    'SALE_LE': (1, (2,), (4,)), 'SALE_THAO': (1, (2,), (4,)),
+    'SALE_YEN': (1, (2,), (3,)), 'CRM_APPLICANTS': (23, (1,), (5,)),
+    'FORM_EPU': (0, (1,), (7,)), 'FORM_GTVT': (0, (24,), (25,)),
+    'FORM_FEVC_GTVT': (0, (52,24,37), (53,25,43)),
+    'FORM_UET': (0, (2,), (4,)),
+}
+
+
+def quarantine_lead_rows(source, contracts, collector_sha, parse_date):
+    """Filter the collector input only, preserving the original source bundle."""
+    tabs, quarantined = [], []
+    for tab in source['tabs']:
+        contract = contracts.get(str(tab['id']), {})
+        parser = contract.get('parser')
+        if parser not in LEAD_FIELDS or not validate_contract(tab, contract, collector_sha):
+            tabs.append(tab)
+            continue
+        day_col, names, phones = LEAD_FIELDS[parser]
+        header = contract['header_row']
+        critical = {e['row'] for e in formula_error_audit(tab, contract)
+                    if e['state'] == 'CRITICAL' and e['row'] > header}
+        rows = []
+        for row, pairs in tab['rows']:
+            cells = dict(pairs)
+            is_record = any(cells.get(c) for c in (*names, *phones))
+            identity = any(phone(cells.get(c)) for c in phones)
+            if parser == 'CRM_APPLICANTS':
+                identity = identity or bool(re.fullmatch(r'https?://\S+',str(cells.get(32) or ''))
+                                            or re.fullmatch(r'GLA-\d{6}-\d+',str(cells.get(0) or '')))
+            reason = None
+            if row in critical:
+                reason = 'CONSUMED_FORMULA_ERROR'
+            elif row > header and is_record:
+                if not parse_date(cells.get(day_col)):
+                    reason = 'INTAKE_DATE_MISSING'
+                elif not identity or not any(cells.get(c) for c in names):
+                    reason = 'INTAKE_IDENTITY_MISSING'
+            if reason:
+                quarantined.append({'file_id':source['file_id'],'tab_id':tab['id'],
+                                    'row':row+1,'reason':reason})
+                critical.discard(row)
+            else:
+                rows.append([row,pairs])
+        quarantined.extend({'file_id':source['file_id'],'tab_id':tab['id'],
+                            'row':row+1,'reason':'CONSUMED_FORMULA_ERROR'} for row in sorted(critical))
+        tabs.append(dict(tab, rows=rows))
+    return dict(source,tabs=tabs), quarantined

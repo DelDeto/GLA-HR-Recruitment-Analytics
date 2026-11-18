@@ -165,3 +165,20 @@ def test_historical_lead_backfill_can_increase_but_not_reduce_known_counts():
     changes,_=table_upserts(s,t);assert changes[0]['after']=={'numberValue':12}
     t['rows'][0][3]=9
     with pytest.raises(SyncBlocked,match='HISTORICAL_LEAD_COUNT_DECREASE_REVIEW'):table_upserts(s,t)
+
+
+def test_identity_date_and_consumed_formula_errors_quarantine_only_affected_rows():
+    from src.sync_source_audit import quarantine_lead_rows
+    source={'file_id':'private','tabs':[{'id':1,'rows':[
+        [0,[[1,'Date'],[2,'Name'],[4,'Phone']]],
+        [1,[[1,'2026-09-02'],[2,'good'],[4,'0900000001']]],
+        [2,[[2,'no date'],[4,'0900000002']]],
+        [3,[[1,'2026-09-02'],[2,'no phone']]],
+        [4,[[1,'2026-09-02'],[2,'error'],[4,'0900000003']]],
+    ],'formula_errors':[{'row':4,'column':1,'type':'REF'}, {'row':1,'column':10,'type':'REF'}]}]}
+    contract={'state':'PARSED','parser':'SALE_LE','header_row':0,
+              'headers':{'1':'Date','2':'Name','4':'Phone'},'consumed_columns':[1,2,4]}
+    cleaned,held=quarantine_lead_rows(source,{'1':contract},None,lambda d:d)
+    assert [r[0]for r in cleaned['tabs'][0]['rows']]==[0,1]
+    assert {r['reason']for r in held}=={'INTAKE_DATE_MISSING','INTAKE_IDENTITY_MISSING','CONSUMED_FORMULA_ERROR'}
+    assert len(source['tabs'][0]['rows'])==5

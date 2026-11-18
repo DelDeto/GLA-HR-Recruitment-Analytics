@@ -73,7 +73,27 @@ def adapter_diagnostics(output):
         if k in ('already_counted','outside_period','unknown_date','needs_review')and type(v)is int}
     if type(legacy.get('merged_duplicates'))is int:result['legacy_sales']['merged_duplicates']=legacy['merged_duplicates']
     result['event_alias_groups']={role:len(rows)for role,rows in output.get('normalized',{}).get('event_alias_review',{}).items()if role in ('A','B')}
+    result['lead_source_rows_quarantined']=len(output.get('normalized',{}).get('lead_source_quarantine',[]))
     return result
+
+
+def branch_bundle(config, branch, bundle):
+    """Missing unrelated sources must not invalidate an independent branch."""
+    if bundle['transport_scan_complete']:
+        return bundle
+    from .sync_source_scope import active_roles
+    roles = active_roles(config.get('adapters', {}).get(branch, {}).get('options', {}).get('source_roles', {}))
+    seen = {source['file_id'] for source in bundle['sources']}
+    if branch == 'meta':
+        complete = True  # Its own API snapshot and native scope proof are required.
+    elif branch == 'lead':
+        inputs = {fid for role,fid in roles.items() if role not in ('pv','ob')}
+        complete = bool(inputs) and inputs <= seen
+    elif branch == 'pv_ob':
+        complete = all(roles.get(role) in seen for role in ('pv','ob'))
+    else:
+        complete = False  # Attendance needs the complete folder and roster.
+    return dict(bundle, transport_scan_complete=complete)
 
 
 def pinned_adapter(spec, payload, state):
@@ -105,6 +125,9 @@ def pinned_adapter(spec, payload, state):
                                 capture_output=True, text=True, cwd=state.root, env=env,
                                 timeout=spec.get('timeout_seconds', 300), check=False)
         if result.returncode:
+            reason=result.stderr.strip()
+            if re.fullmatch(r'[A-Z][A-Z0-9_]{2,100}',reason):
+                raise SyncBlocked(reason)
             raise SyncBlocked('ADAPTER_PROCESS_FAILED')
         output = json.loads(result.stdout)
     except (subprocess.TimeoutExpired, ValueError):
@@ -129,10 +152,39 @@ def validate_config(config):
         raise SyncBlocked('SOURCE_LOCATIONS_MISSING')
 
 
-def stage_run(config, transport, state, adapters=None):
+def stage_meta_snapshot(config, state):
+    """Refresh the pinned Meta input inside the credential-bearing runtime."""
+    if config.get('capture_meta_in_runtime') is not True:
+        return config
+    from datetime import date
+    from .meta_sync import MetaClient, parse_accounts
+    from .sync_meta_snapshot import capture, validate
+    from .sync_access_check import ACCOUNT_HASHES
+    token = os.getenv('META_ACCESS_TOKEN')
+    accounts = parse_accounts(os.getenv('META_AD_ACCOUNT_IDS'))
+    if not token or {hashlib.sha256(a.encode()).hexdigest() for a in accounts} != ACCOUNT_HASHES:
+        return config
+    start = '2026-01-01'
+    try:
+        snapshot = capture(accounts,date.fromisoformat(start),date.fromisoformat(config['as_of']),
+                           MetaClient(token,os.getenv('META_API_VERSION','v27.0')))
+        validate(snapshot,{'accounts':accounts,'from':start},config['as_of'])
+    except Exception:
+        return config  # Independent branches can still complete. No stale replacement.
+    name = 'meta-' + digest(snapshot) + '.json'
+    state.save(name,snapshot,immutable=True)
+    path = state.root / name
+    adapter = config['adapters']['meta']
+    spec = {'path':str(path),'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),
+            'accounts':accounts,'from':start}
+    return dict(config,adapters=dict(config['adapters'],
+        meta=dict(adapter,options=dict(adapter.get('options',{}),meta_snapshot=spec))))
+
+
+def stage_run(config, transport, state, adapters=None, *, input_config_hash=None):
     validate_config(config)
     if config.get('require_service_account_preflight'):
-        preflight_access(config,transport,state)
+        preflight_access(config,transport,state, allow_source_partial=True)
     before = {name: transport.snapshot(t['id']) for name,t in config['targets'].items()}
     for name,snapshot in before.items():
         if snapshot['id'] != config['targets'][name]['id']:
@@ -146,17 +198,18 @@ def stage_run(config, transport, state, adapters=None):
     for branch in BRANCHES:
         diagnostics={}
         try:
-            if not bundle['transport_scan_complete']:
+            scoped_bundle=branch_bundle(config,branch,bundle)
+            if not scoped_bundle['transport_scan_complete']:
                 raise SyncBlocked('SOURCE_SCAN_PARTIAL')
             if any(d not in normalized for d in DEPENDENCIES.get(branch, ())):
                 raise SyncBlocked('DEPENDENCY_NOT_READY')
             spec = config.get('adapters', {}).get(branch)
-            payload = {'branch':branch, 'as_of':config['as_of'], 'sources':bundle,
+            payload = {'branch':branch, 'as_of':config['as_of'], 'sources':scoped_bundle,
                        'targets':working, 'normalized':normalized,
                        'options':(spec or {}).get('options', {})}
             output = adapters[branch](payload) if adapters is not None and branch in adapters else pinned_adapter(spec, payload, state)
             diagnostics=adapter_diagnostics(output)
-            validate_envelope(output, bundle)
+            validate_envelope(output, scoped_bundle)
             if output.get('validation') != 'PASS':
                 raise SyncBlocked('BUSINESS_VALIDATION_NOT_PASS')
             # Retain a fully source-validated normalization for downstream
@@ -167,17 +220,17 @@ def stage_run(config, transport, state, adapters=None):
                 raise SyncBlocked('EXPLICIT_BOTH_TARGET_TABLES_REQUIRED')
             if branch != 'forecast' and any(not output['tables'][n] for n in ('A','B')):
                 proof=output.get('read_only_validation',{})
-                if (branch!='meta' or set(proof)!={'A','B'} or
+                if (branch!='meta' or set(proof)|set(output.get('plan_blockers',{}))!={'A','B'} or
                     any(output['tables'][n] for n in ('A','B')) or
                     any(type(proof[n].get('rows'))is not int or proof[n]['rows']<0 or
-                        not re.fullmatch('[0-9a-f]{64}',str(proof[n].get('hash','')))for n in ('A','B'))):
+                        not re.fullmatch('[0-9a-f]{64}',str(proof[n].get('hash','')))for n in proof)):
                     raise SyncBlocked('NO_VERIFIABLE_BRANCH_FACT_TABLE')
             plans = {};target_status={}
             for name,target in config['targets'].items():
                 try:
                     if output.get('plan_blockers',{}).get(name):
                         raise SyncBlocked(output['plan_blockers'][name])
-                    changes, guards = [], {}
+                    changes, guards, quarantined = [], {}, []
                     if branch == 'forecast':
                         from .forecast_sync import build_plan
                         fc = output['forecast'][name]
@@ -192,7 +245,8 @@ def stage_run(config, transport, state, adapters=None):
                                 raise SyncBlocked('ACTUAL_HISTORY_MUST_BE_IMMUTABLE')
                             if branch=='bonus' and table.get('sheet_id')==7401 and table.get('immutable_existing') is not True:
                                 raise SyncBlocked('LEGACY_AWARD_HISTORY_MUST_BE_IMMUTABLE')
-                            part, keys = table_upserts(working[name],table)
+                            part, keys = table_upserts(working[name],table,
+                                quarantined=quarantined if branch in ('lead','pv_ob','attendance') else None)
                             changes.extend(part); guards.update(keys)
                     if len({c['key'] for c in changes}) != len(changes):
                         raise SyncBlocked('OVERLAPPING_BRANCH_TABLES')
@@ -201,25 +255,31 @@ def stage_run(config, transport, state, adapters=None):
                             if c['after'].get('stringValue') in ('Đã thực hiện thưởng','ĐÃ CHI','ĐÃ DUYỆT','ĐÃ CHỐT'):
                                 raise SyncBlocked('BONUS_CANNOT_APPROVE_OR_CLAIM_PAYMENT')
                     validate_owned(requests_for(changes), working[name],target['role'],branch,target.get('ownership',{}).get(branch,[]))
-                    plans[name] = {'changes':changes, 'guards':guards}
-                    target_status[name]={'state':'READY'}
+                    held=list(output.get('held',{}).get(name,[]))
+                    held.extend(sorted({row['reason'] for row in quarantined}))
+                    plans[name] = {'changes':changes, 'guards':guards, 'quarantined':quarantined}
+                    target_status[name]={'state':'PARTIAL' if held else 'READY',
+                        'held_reasons':held, 'quarantined_target_rows':len(quarantined),
+                        'changed_rows':len({c['key'].rsplit(':',1)[0] for c in changes}),
+                        'changed_cells':len(changes), 'plan_hash':digest(plans[name])}
+                    if held:target_status[name]['reason']=held[0]
                 except Exception as exc:
                     target_status[name]={'state':'PARTIAL','reason':str(exc)if isinstance(exc,SyncBlocked)else'TARGET_PLAN_REJECTED'}
-            if any(x['state']!='READY'for x in target_status.values()):
-                branches[branch]={'state':'PARTIAL','reason':next(x['reason']for x in target_status.values()if x['state']!='READY'),
-                                  'normalization_state':'VALIDATED','targets':target_status,'plans':plans,'diagnostics':diagnostics}
-                continue
-            # A failure in B must not mutate the staged working snapshot of A.
+            # Simulate only complete target plans. A held subset cannot become
+            # a materialized dependency for forecast, fees, or bonus.
             for name,plan in plans.items():
+                if target_status[name]['state']!='READY':continue
                 for c in plan['changes']:
                     working[name]['cells'][c['key']] = {'userEnteredValue':c['after']}
-            branches[branch] = {'state':'READY', 'plans':plans,
+            reasons=[x['reason'] for x in target_status.values() if x['state']!='READY']
+            branches[branch] = {'state':'PARTIAL' if reasons else 'READY', 'plans':plans,
                                 'adapter_sha':(spec or {}).get('sha256'),'normalization_state':'VALIDATED','targets':target_status,'diagnostics':diagnostics}
+            if reasons:branches[branch]['reason']=reasons[0]
             normalized[branch] = output.get('normalized', {})
         except Exception as exc:
             branches[branch] = {'state':'PARTIAL', 'reason':str(exc) if isinstance(exc,SyncBlocked) else 'ADAPTER_OR_PLAN_REJECTED','diagnostics':diagnostics}
             branches[branch]['targets']={n:dict(state='PARTIAL',reason=branches[branch]['reason'])for n in config['targets']}
-    stage = {'config_hash':digest(config), 'created_at':time.time(), 'config':config,
+    stage = {'config_hash':input_config_hash or digest(config), 'created_at':time.time(), 'config':config,
              'sources':bundle, 'normalized':normalized, 'before':before, 'branches':branches,
              'protected':{n:protected_hash(s,config['targets'][n]['role']) for n,s in before.items()},
              'errors_before':{n:formula_errors(s) for n,s in before.items()}}
@@ -228,7 +288,7 @@ def stage_run(config, transport, state, adapters=None):
     return run_id, stage
 
 
-def preflight_access(config,transport,state):
+def preflight_access(config,transport,state, *, allow_source_partial=False):
     """Check the actual runtime identity's capabilities, without a write probe."""
     checks={}
     requested={t['id']:('target',n)for n,t in config['targets'].items()}
@@ -245,7 +305,7 @@ def preflight_access(config,transport,state):
         except Exception:
             checks[label]={'kind':kind,'state':'BLOCKED','reason':'SERVICE_ACCOUNT_ACCESS_UNVERIFIED'}
     state.save('access-preflight.json',checks)
-    if any(c['state']!='PASS'for c in checks.values()):
+    if any(c['state']!='PASS' and (c['kind']=='target' or not allow_source_partial) for c in checks.values()):
         raise SyncBlocked('SERVICE_ACCOUNT_SOURCE_OR_TARGET_ACCESS_BLOCKED')
     return checks
 
@@ -259,8 +319,10 @@ def execute_stage(run_id, stage, transport, state, *, apply=False):
         raise SyncBlocked('STAGE_EXPIRED_RECOLLECT_AND_VALIDATE')
     checkpoints = state.read('checkpoint-'+run_id+'.json', {}) if apply else {}
     results = {}
+    decisions = {}
     for name,target in targets.items():
         statuses = {}
+        decisions[name]={}
         try:
             current = transport.snapshot(target['id'])
             if protected_hash(current,target['role']) != stage['protected'][name]:
@@ -269,32 +331,58 @@ def execute_stage(run_id, stage, transport, state, *, apply=False):
                 raise SyncBlocked('NATIVE_FORMULA_ERRORS_PRESENT')
             for branch in BRANCHES:
                 branch_plan = stage['branches'][branch]
-                if branch_plan['state'] != 'READY':
+                target_plan=branch_plan.get('targets',{}).get(name,{'state':branch_plan['state']})
+                plan=branch_plan.get('plans',{}).get(name)
+                partial=target_plan['state']!='READY'
+                if plan is None or (partial and not plan['changes']):
                     statuses[branch] = 'PARTIAL'; continue
+                if apply and partial and stage['config'].get('approved_partial_plan_hashes',{}).get(name,{}).get(branch)!=digest(plan):
+                    statuses[branch]='PARTIAL';continue
                 if any(statuses.get(d) not in ('VERIFIED','DRY_RUN_READY') for d in DEPENDENCIES.get(branch, ())):
                     statuses[branch] = 'PARTIAL'; continue
-                plan = branch_plan['plans'][name]
                 latest = state.read('last-good-'+name+'-'+branch+'.json', {})
                 if apply and latest.get('created_at',0) > stage['created_at']:
-                    raise SyncBlocked('NEWER_SOURCE_CHECKPOINT_EXISTS')
+                    statuses[branch]='PARTIAL_NEWER_SOURCE_CHECKPOINT';continue
                 # Resume uses the same immutable plans; a response lost after a
                 # successful write is recognized as already applied, not appended.
-                for k,guard in plan['guards'].items():
-                    actual = current['cells'].get(k,{}).get('userEnteredValue',{})
-                    if actual not in (guard['before'],guard['after']):
-                        raise SyncBlocked('STABLE_ROW_KEY_CHANGED')
+                if any(current['cells'].get(k,{}).get('userEnteredValue',{}) not in (g['before'],g['after'])
+                       for k,g in plan['guards'].items()):
+                    statuses[branch]='PARTIAL_STABLE_ROW_KEY_CHANGED';continue
                 pending = []
+                preimage_changed=False
                 for c in plan['changes']:
                     actual = current['cells'].get(c['key'],{}).get('userEnteredValue',{})
                     if actual == c['after']:
                         continue
                     if actual != c['before']:
-                        raise SyncBlocked('OWNED_PREIMAGE_CHANGED')
+                        preimage_changed=True
+                        break
                     pending.append(c)
+                if preimage_changed:
+                    statuses[branch]='PARTIAL_OWNED_PREIMAGE_CHANGED';continue
                 if not apply:
+                    # Read current authored values through the native bounded
+                    # endpoint before trusting the same endpoint after apply.
+                    if hasattr(transport,'read_cells') and (pending or plan['guards']):
+                        keys=list({c['key'] for c in plan['changes']} | set(plan['guards']))
+                        try:
+                            reread=transport.read_cells(target['id'],current,keys)
+                        except Exception:
+                            statuses[branch]='PARTIAL_READBACK_FAILED'
+                            continue
+                        if set(reread)!=set(keys) or any(
+                            reread[k].get('userEnteredValue',{})!=current['cells'].get(k,{}).get('userEnteredValue',{})
+                            for k in keys
+                        ):
+                            statuses[branch]='PARTIAL_READBACK_PREIMAGE_CHANGED'
+                            continue
                     for c in plan['changes']:
                         current['cells'][c['key']] = {'userEnteredValue':c['after']}
-                    statuses[branch] = 'DRY_RUN_READY'
+                    statuses[branch] = 'PARTIAL_DRY_RUN_READY' if partial else 'DRY_RUN_READY'
+                    decisions[name][branch]={'changed_rows':len({c['key'].rsplit(':',1)[0] for c in pending}),
+                        'changed_cells':len(pending),'plan_hash':digest(plan),
+                        'native_bounded_readback':hasattr(transport,'read_cells'),
+                        'checkpoint_can_advance':not partial}
                     continue
                 native_requests=requests_for(pending)
                 for offset in range(0,len(native_requests),200):
@@ -310,7 +398,7 @@ def execute_stage(run_id, stage, transport, state, *, apply=False):
                     raise SyncBlocked('NATIVE_READBACK_MISMATCH')
                 if protected_hash(current,target['role'])!=stage['protected'][name] or formula_errors(current):
                     raise SyncBlocked('POST_WRITE_PROTECTED_OR_FORMULA_CHECK_FAILED')
-                statuses[branch] = 'VERIFIED'
+                statuses[branch] = 'PARTIAL_VERIFIED' if partial else 'VERIFIED'
                 checkpoints[name+':'+branch] = {'plan_hash':digest(plan), 'state':'CELL_READBACK'}
                 state.save('checkpoint-'+run_id+'.json',checkpoints)
             complete = all(statuses.get(b)==('VERIFIED' if apply else 'DRY_RUN_READY') for b in BRANCHES)
@@ -337,12 +425,13 @@ def execute_stage(run_id, stage, transport, state, *, apply=False):
     except Exception as exc:
         comparison = {'state':'FAIL','reason':str(exc) if isinstance(exc,SyncBlocked) else 'RECONCILIATION_INVALID'}
         for result in results.values():result['state']='PARTIAL'
-    if apply and comparison['state']=='PASS':
+    if apply:
         for name,result in results.items():
             if not result.get('protected_hash_match') or result.get('formula_errors'):
                 continue
             for branch,status in result['branches'].items():
                 if status!='VERIFIED':continue
+                if branch in ('forecast','bonus') and comparison['state']!='PASS':continue
                 plan=stage['branches'][branch]['plans'][name]
                 final=final_snapshots[name]
                 if any(final['cells'].get(c['key'],{}).get('userEnteredValue',{})!=c['after'] for c in plan['changes']):
@@ -353,16 +442,28 @@ def execute_stage(run_id, stage, transport, state, *, apply=False):
     for name,result in results.items():
         result['authored_cells_before'] = sum('userEnteredValue' in c for c in stage['before'][name]['cells'].values())
         result['authored_cells_after'] = sum('userEnteredValue' in c for c in final_snapshots.get(name,{'cells':{}})['cells'].values())
+        if not apply and name in final_snapshots:
+            def authored_digest(snapshot):
+                return digest({k:c['userEnteredValue'] for k,c in snapshot['cells'].items() if 'userEnteredValue' in c})
+            result['authored_hash_match']=authored_digest(stage['before'][name])==authored_digest(final_snapshots[name])
+            if not result['authored_hash_match']:result['state']='PARTIAL'
     report = {'comparison':comparison, 'run_id':run_id, 'mode':'APPLY' if apply else 'DRY_RUN', 'targets':results,
               'blockers':{b:p.get('reason') for b,p in stage['branches'].items() if p['state']!='READY'},
               'planning':{b:p.get('targets',{})for b,p in stage['branches'].items()}}
     report['diagnostics']={b:p.get('diagnostics',{})for b,p in stage['branches'].items()}
+    if not apply:report['validated_subsets']=decisions
     if not apply and stage['config'].get('private_common_scope'):
         try:
             from .sync_scope import check_common
             report['private_common_scope']=check_common(final_snapshots,stage['config']['private_common_scope'])
         except Exception as exc:
             report['private_common_scope']={'state':'FAIL','reason':str(exc)if isinstance(exc,SyncBlocked)else'PRIVATE_PROJECTION_INVALID'}
+        try:
+            from .sync_scope import compare_facts
+            if set(final_snapshots)!={'A','B'}:raise SyncBlocked('BOTH_NATIVE_TARGETS_REQUIRED')
+            report['common_scope_facts']=compare_facts(final_snapshots,stage['config']['private_common_scope'])
+        except Exception as exc:
+            report['common_scope_facts']={'state':'FAIL','reason':str(exc)if isinstance(exc,SyncBlocked)else'NATIVE_FACT_COMPARISON_INVALID'}
     state.save('audit-'+run_id+('-apply' if apply else '-dry')+'.json',report)
     return report
 
@@ -377,6 +478,9 @@ def main():
         config=json.loads(Path(args.config).read_text());state=PrivateState(args.state_dir)
         with state.lock():
             transport=GoogleTransport.from_env(state)
+            if not args.apply:
+                from .sync_access_check import forbid_writes
+                transport=forbid_writes(transport)
             if args.resume:
                 if len(args.resume)!=64 or any(c not in '0123456789abcdef'for c in args.resume):
                     raise SyncBlocked('INVALID_RESUME_ID')
@@ -385,7 +489,10 @@ def main():
                     raise SyncBlocked('RESUME_STAGE_OR_CONFIG_CHANGED')
                 run_id=args.resume
             else:
-                run_id,stage=stage_run(config,transport,state)
+                # Re-capture inside this environment. A resume always uses its
+                # original immutable stage instead of recapturing data.
+                runtime_config=stage_meta_snapshot(config,state)
+                run_id,stage=stage_run(runtime_config,transport,state,input_config_hash=digest(config))
             report=execute_stage(run_id,stage,transport,state,apply=args.apply)
         # Report contains counts/reason codes/hashes only; no worker rows or URLs.
         report['attempt_id']=attempt_id

@@ -302,3 +302,55 @@ def test_bonus_master_and_legacy_copy_have_separate_ownership():
     with pytest.raises((SyncBlocked,UnsafeSyncPlan)):validate_owned([req],s,'MASTER_V23','bonus',[[7401,3,3000,0,14]])
     req['updateCells']['start']['columnIndex']=14
     with pytest.raises(UnsafeSyncPlan):validate_owned([req],s,'SEPTEMBER_V22','bonus',[[7401,3,3000,0,22]])
+
+
+def test_partial_target_does_not_block_other_target_or_unrelated_branch(tmp_path):
+    native=Native();st=state(tmp_path);staged=stage(native)
+    plan=staged['branches']['pv_ob']
+    plan['state']='PARTIAL';plan['targets']={'A':{'state':'PARTIAL'},'B':{'state':'READY'}}
+    plan['plans']['A']['changes']=[{'key':'7500:3:5','before':{},'after':{'stringValue':'verified-event'}}]
+    before=copy.deepcopy(native.s)
+    report=execute_stage('branch-target',staged,native,st)
+    assert report['targets']['A']['branches']['pv_ob']=='PARTIAL_DRY_RUN_READY'
+    assert report['targets']['A']['branches']['attendance']=='PARTIAL'
+    assert report['targets']['A']['branches']['meta']=='DRY_RUN_READY'
+    assert report['targets']['B']['branches']['attendance']=='DRY_RUN_READY'
+    assert report['validated_subsets']['A']['pv_ob']['checkpoint_can_advance']is False
+    assert native.s==before and not native.calls and not list(st.root.glob('last-good-*'))
+
+
+def test_partial_write_requires_exact_approved_hash_and_retains_last_good(tmp_path):
+    native=Native();st=state(tmp_path);staged=stage(native)
+    plan=staged['branches']['lead'];plan['state']='PARTIAL'
+    plan['targets']={'A':{'state':'PARTIAL'},'B':{'state':'READY'}}
+    st.save('last-good-A-lead.json',{'run_id':'previous'})
+    staged['config']['approved_partial_plan_hashes']={'A':{'lead':digest(plan['plans']['A'])}}
+    report=execute_stage('approved-subset',staged,native,st,apply=True)
+    assert report['targets']['A']['branches']['lead']=='PARTIAL_VERIFIED'
+    assert report['targets']['B']['branches']['lead']=='VERIFIED'
+    assert st.read('last-good-A-lead.json')=={'run_id':'previous'}
+    assert st.read('last-good-B-lead.json')['run_id']=='approved-subset'
+
+
+def test_missing_sales_transport_only_blocks_its_consumers():
+    from src.sync_runner import branch_bundle
+    options={'source_roles':{'sale_le':'sales','pv':'pv','ob':'ob'}}
+    cfg={'adapters':{name:{'options':options}for name in BRANCHES}}
+    bundle={'transport_scan_complete':False,'sources':[{'file_id':'pv'},{'file_id':'ob'}]}
+    assert branch_bundle(cfg,'pv_ob',bundle)['transport_scan_complete'] is True
+    assert branch_bundle(cfg,'lead',bundle)['transport_scan_complete'] is False
+    assert branch_bundle(cfg,'attendance',bundle)['transport_scan_complete'] is False
+    assert branch_bundle(cfg,'meta',bundle)['transport_scan_complete'] is True
+
+
+def test_conflicting_fee_row_stays_unchanged_while_new_row_plans():
+    s=snap();s['sheets'][0]['sheetId']=7851
+    s['cells']={'7851:0:0':{'userEnteredValue':{'stringValue':'ID'}},
+                '7851:0:1':{'userEnteredValue':{'stringValue':'Amount'}},
+                '7851:1:0':{'userEnteredValue':{'stringValue':'old'}},
+                '7851:1:1':{'userEnteredValue':{'numberValue':12}}}
+    tbl=table([['old',99],['new',42]]);tbl.update(sheet_id=7851,immutable_existing=True,identity_basis='attendance_episode_period')
+    held=[];changes,guards=table_upserts(s,tbl,quarantined=held)
+    assert {c['key']for c in changes}=={'7851:2:0','7851:2:1'}
+    assert held[0]['reason']=='HISTORICAL_FACT_CONFLICT'
+    assert '7851:1:0'not in guards
