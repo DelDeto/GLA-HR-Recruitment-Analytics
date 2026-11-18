@@ -141,5 +141,8 @@ def request(session, method, url, *, sleep=time.sleep, attempts=6, **kwargs):
             retry = float(response.headers.get('Retry-After', '0')) if response is not None else 0
         except ValueError:
             retry = 0
-        sleep(min(30, max(retry, 2 ** attempt + random.random())))
+        # Sheets per-minute quotas can outlast the entire old 31s retry budget.
+        # A 429 waits one full quota window; transient 5xx keep bounded backoff.
+        delay = min(60, max(retry, 60)) if code == 429 else min(30, max(retry, 2 ** attempt + random.random()))
+        sleep(delay)
     raise SyncBlocked('RETRY_EXHAUSTED')

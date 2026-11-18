@@ -120,6 +120,11 @@ def coverage(payload,used,options):
     for source in payload['sources']['sources']:
         from .sync_source_audit import source_scope_audit,resolve_contracts
         role=next((k for k,fid in options.get('source_roles',{}).items()if fid==source['file_id']),None)
+        if role in UNUSED_SOURCE_HASHES:
+            active_roles(options['source_roles'])
+            out[source['file_id']]={'fingerprint':source['fingerprint'],'tabs':{
+                str(t['id']):{'state':'VERIFIED_OUT_OF_SCOPE','reason_code':'USER_CONFIRMED_UNUSED'}for t in source['tabs']}}
+            continue
         program='collector'if role and role!='ob'else'normalizer'
         sha=options.get('programs',{}).get(program,{}).get('sha256')
         reviewed=source_scope_audit(source,resolve_contracts(source,options),sha)
