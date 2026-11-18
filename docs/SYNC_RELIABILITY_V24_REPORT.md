@@ -1,85 +1,53 @@
-# GLA HR V2.4 — Quyết định triển khai ngày 18/11/2026
+# GLA HR V2.4 — Kiểm chứng và triển khai ngày 18/11/2026
 
-**Giữ trạng thái production hiện tại.** Lead và PV/OB đã có kế hoạch riêng cho các dòng đủ căn cứ trên snapshot. Hai nhánh này là ứng viên triển khai trước, sau khi cùng kế hoạch đó được xác minh bằng FULL DRY RUN trực tiếp và được duyệt ghi. Số dòng được phép ghi ngay hiện tại là **0 trên A và 0 trên B**.
+## Kết luận hiện tại
 
-Mã triển khai `87cf3f0141bb71466f4f27ba8969a34961651b3b` thuộc PR #3. `--apply`, lịch và các trigger hiện tại giữ nguyên trạng thái. CTECH nằm ngoài phạm vi theo xác nhận của người dùng.
+FULL DRY RUN trực tiếp đã hoàn tất lúc **15:25:36 ngày 18/11/2026, giờ Việt Nam**. Kết quả **PARTIAL, chưa đạt nghiệm thu toàn bộ**, ghi production **0**. Không bật thưởng NHÁP hoặc sửa các fact lịch sử xung đột.
 
-## Quyết định theo nhánh và file
+Bằng chứng: [full run 44265174021](https://github.com/DelDeto/GLA-HR-Recruitment-Analytics/actions/runs/44265174021), mã `fb676c401591571a214a6656d93805ecba076a82`, run nội bộ `f6acd1cb3ac3c87508fa5af46b7adce1c0d24d5f5d4dd0d264ed7267d26d513b`. Lần FULL DRY RUN trước dùng bộ đọc chậm đã hủy khi bản tối ưu thay thế; không tính lần hủy là nghiệm thu.
 
-Số dòng bên dưới là số dòng vật lý dự kiến thay đổi trong snapshot, tính riêng cho mỗi file. Chúng chưa phải số ghi được xác minh với Google Sheets hiện tại.
+## Kết quả trên dữ liệu thật
 
-| Nhánh | A | B | Quyết định |
-|---|---:|---:|---|
-| Lead | 113 dòng, 609 ô | 113 dòng, 609 ô | PARTIAL. Ưu tiên phần đã lập kế hoạch. Giữ 7 dòng đề xuất giảm số lịch sử trên mỗi file và cách ly bản ghi thiếu căn cứ. |
-| PV/OB | 6 dòng, 48 ô | 6 dòng, 48 ô | PARTIAL. Ưu tiên 6 sự kiện bổ sung. Giữ 105 mục đối soát mỗi file gồm khóa, định danh và hồ sơ thiếu mã. Giữ ghi chú và nguồn của sự kiện lịch sử. |
-| Công và phí thực tế | 0 | 0 | Giữ nguyên. PV/OB còn PARTIAL. Giữ 270 dòng khác biệt lịch sử mỗi file, gồm 135 khác biệt nguồn hoặc ghi chú và 135 đề xuất đổi phí hoặc điều kiện của Quanta. |
-| Forecast V2.2 | 0 được xét ghi | 0 được xét ghi | Giữ nguyên. Có kế hoạch kỹ thuật 2.549 dòng trên mỗi file nhưng phụ thuộc công và PV/OB. Đối soát theo bộ lọc hiện tại chưa đạt. |
-| Thưởng V19 | 0 | 0 | Giữ nguyên 12 chính sách NHÁP và nhật ký. Thiếu ca nghiệm thu đã xác nhận và phụ thuộc công chưa đạt. |
-| Meta | 0 | 0 | Chỉ đọc để đối soát. API đã PASS trong job trước. Cần snapshot trực tiếp trong cùng lần chạy và đối chiếu native A/B. Giữ các tổng đã chốt. |
+- Đọc đủ **16/16 file, 182 tab**; toàn bộ schema có hợp đồng đã rà soát. Tab mới hoặc đổi header phải được kiểm tra lại.
+- Meta Marketing API trực tiếp: **3 tài khoản, 3.838 dòng**, kỳ 01/01–18/11/2026.
+- **2.043 ô lỗi công thức nguồn**: 5 lỗi trường Lead tiêu thụ được cách ly; 2.038 lỗi thuộc phạm vi loại trừ đã kiểm chứng. Cách ly 3.197 dòng Lead; Sales legacy còn 1.663 dòng thiếu ngày và 25 dòng cần đối soát. Không tự suy diễn ngày hoặc định danh.
+- Cả A/B không có lỗi công thức native tại lần đọc cuối. **A có thay đổi bên ngoài trong khi kiểm thử**: 474.233 → 474.746 ô có giá trị nhập, hash giá trị nhập và vùng bảo vệ không khớp. **B không thay đổi**, 458.153 ô. Đích thay đổi sẽ bị giữ khi áp dụng.
 
-Nếu một nguồn thiếu toàn bộ dữ liệu cần thiết, nhánh tiêu thụ nguồn đó báo PARTIAL và giữ last-good. Runner giữ riêng kế hoạch và checkpoint của từng nhánh trên mỗi file. Phần hợp lệ của kế hoạch PARTIAL có thể được duyệt bằng hash tương ứng khi có phê duyệt ghi riêng. Việc ghi phần đó giữ nguyên last-good và không mở khóa các nhánh phụ thuộc. Bản ghi cách ly vẫn nằm trong đầu vào private và không được tự sửa hoặc tự điền.
+| Nhánh | Kế hoạch mỗi file | Quyết định toàn bộ |
+|---|---:|---|
+| Lead | 122 dòng / 663 ô | PARTIAL; giữ 10 dòng đích cần xét giảm lịch sử và nguồn cách ly |
+| PV/OB | 7 dòng / 56 ô | PARTIAL; giữ 102 nhóm định danh/alias cần đối soát |
+| Công, phí thực tế | 23 dòng / 457 ô | PARTIAL; giữ 270 fact lịch sử xung đột |
+| Dự báo | 553 dòng / 576 ô kỹ thuật | Chưa ghi vì nguồn phụ thuộc PARTIAL |
+| Thưởng | 0 được ghi | Thiếu ca nghiệm thu chính sách xác nhận; giữ nguyên NHÁP và nhật ký |
+| Meta full-year | Chỉ đọc đối soát | Native chưa bằng snapshot API; không coi đồng bộ 8 ngày là khôi phục đủ năm |
 
-## Bằng chứng và giới hạn
+Đối soát độc lập **tháng 9** PASS: 420 Lead, 66 PV/OB, 566 fact công ngày, 14 fact kỳ; dự báo cùng phạm vi 9 dòng tháng × nhà máy khớp phép tính độc lập. Bộ lọc A và B khác kỳ được giữ nguyên. Cache native tổng thể còn `NATIVE_CROSS_FILE_MISMATCH`; kết quả tháng 9 không chứng minh toàn năm hoặc tháng hiện tại đã bằng nhau.
 
-- **Kiểm chứng quyền và vận chuyển dữ liệu trực tiếp** trong run `44219333231`, job `134516998914`. Service account canEdit trên A/B, đọc đủ 16/16 file và 182 tab. Meta Marketing API trả 3.837 dòng từ 3 tài khoản qua 18/11. Lần này ghi nhận 2.045 ô lỗi công thức nguồn. Số lỗi này cần phân loại bằng consumer trong lần FULL DRY RUN hiện tại.
-- **Chạy lại đủ nhánh trên snapshot private 17/11** với run `44e43ec531ef4aa591015ce864b31f1f07604dbff593147edf397acf43c18742`. Đọc 16 file và 182 tab với mỗi file đọc một lần. Đối chiếu quyền sở hữu vùng ghi, khóa và giá trị trước ghi của từng dòng dự kiến. Hash vùng bảo vệ và hash giá trị nhập trước/sau giữ nguyên trên cả hai file. Quét toàn bộ ô snapshot của A/B thấy 0 lỗi công thức. Đọc lại vùng dự kiến chạy trên bản snapshot. Xác minh đọc lại qua API và công thức sau thay đổi cần lần chạy trực tiếp.
-- **Phân loại lỗi ở snapshot 17/11**. Trong 574 ô lỗi đã phân loại, 572 thuộc trường không được dùng hoặc có định danh thay thế kiểm chứng được. Hai hồ sơ CRM có lỗi định danh tiêu thụ được giữ cách ly. Cơ chế mới cách ly 3.185 dòng Lead theo trường thực tế gồm 3.038 thiếu ngày, 145 thiếu định danh và 2 lỗi công thức trường tiêu thụ. Các tab Sales bổ sung còn 1.657 dòng chưa có ngày và 25 dòng cần định danh. Các con số này thuộc snapshot 17/11. Phạm vi 2.045 ô lỗi ngày 18/11 chưa được phân loại.
-- **Đối soát A/B trên snapshot**. Cùng kỳ 01/09–17/11, nhóm LĐPT và tất cả nhà máy, các fact Lead, PV/OB và phí thực tế khớp. Dự báo quy về 36 dòng tháng × nhà máy khớp với kết quả tính độc lập. Cache hiển thị native chưa khớp (`NATIVE_CROSS_FILE_MISMATCH`). Bộ lọc của từng file giữ nguyên.
-- **FULL DRY RUN trực tiếp** dừng trước bước đọc tại attempt `1f6340c86f4545c09d9c42c388bb4cf6` do `GOOGLE_SERVICE_ACCOUNT_JSON_MISSING`. Workspace chứa manifest private và chương trình đã pin SHA, còn credential đã PASS chỉ được cấp vào job chẩn đoán hiện có. Số ghi production và số checkpoint được nâng đều bằng 0. A/B vẫn PARTIAL trong replay và BLOCKED đối với quyết định ghi.
-- **153 kiểm thử PASS** tại CI run `44223809572` và workspace. Run CI này kiểm tra mã triển khai. Job chẩn đoán truy cập trước đó cung cấp bằng chứng quyền riêng.
+## Môi trường và credentials
 
-## Việc cần quyết định hoặc cung cấp
+Không cần người dùng cung cấp token trong chat hoặc cài runner trên máy cá nhân. GitHub Actions hiện có dùng trực tiếp repository secrets Google/Meta. Sáu chương trình private được lấy từ đúng ô kho mã hiện hữu, kiểm tra SHA256 rồi mới chạy trong thư mục tạm quyền riêng tư. Đã bổ sung dependency `lxml`. Public repo không chứa nội dung các chương trình private, nhân sự, manifest tài nguyên hoặc credentials.
 
-1. **Môi trường FULL DRY RUN.** Cho phép runner private hiện có nhận credential Google và Meta đang dùng từ kho bí mật của tổ chức, hoặc cung cấp vị trí runtime private đã nhận các biến đó. Quyền chia sẻ Google của service account hiện tại đã PASS. Lệnh chạy dùng bản manifest `round6-deployment-decision/production-manifest.json` và state directory chỉ chủ sở hữu truy cập. Chạy `python -m src.sync_runner --config PRIVATE_MANIFEST --state-dir PRIVATE_STATE` trong runtime đó. Runner đọc lại A/B và toàn bộ nguồn, chụp Meta trong cùng runtime, xác minh các chương trình với vị trí SHA còn hiện hành và xuất kế hoạch theo file/nhánh.
-2. **Phê duyệt ghi từng phần sau kết quả trực tiếp.** Duyệt đúng số dòng và hash kế hoạch Lead và PV/OB trên từng file. Các dòng đang giữ được tách khỏi lần phê duyệt này. Giữ last-good cho các nhánh PARTIAL.
-3. **Chỉ xác nhận các ngoại lệ khi cần đưa chúng vào dữ liệu.** Bổ sung ngày hoặc định danh có căn cứ cho Lead, xác nhận 7 dòng giảm số lịch sử nếu có đính chính, xác minh hồ sơ và khóa PV/OB khi bổ sung. Phí Quanta yêu cầu bảng công và ngày nghỉ có chứng từ trước khi đổi điều kiện. Thưởng yêu cầu một chính sách thực tế đã xác nhận cùng ca nghiệm thu. Các ngoại lệ này có thể tiếp tục cách ly trong khi duyệt các dòng độc lập đủ căn cứ.
+Generic full runner vẫn có `deployment_approved=false` và `single_writer_private_volume=false`. Job GitHub-hosted tạm thời không được nhận là private volume bền vững.
 
-Bản ghi người lao động, nội dung manifest, nguồn riêng và chứng cứ chi tiết được giữ trong các thư mục private. Không merge, thay workflow, bật lịch, tạo trigger hay ghi Sheets trong lần này.
+## Chế độ chạy độc lập có giới hạn
 
+`src.sync_daily` bổ sung chế độ đồng bộ Meta A/B và sao chép các phần fact độc lập đã kiểm chứng. Đây **không phải** nghiệm thu hoặc mở khóa full V2.4:
 
-## Tiếp nhận trực tiếp trong Work Mode — 18/11/2026
+- Meta: lập kế hoạch chỉ đọc cho **cả A và B trước khi ghi file nào**, giữ cửa sổ cập nhật 8 ngày và cơ chế bù gián đoạn hiện hữu. Khóa theo account/date/campaign, không nhân đôi khi retry. Đọc lại giá trị native trước khi ghi checkpoint SUCCESS. Tên chiến dịch được ép literal, không thực thi công thức từ tên Meta.
+- Lead/PV/công: chỉ dùng normalization VALIDATED và phần kế hoạch có lý do cách ly được allowlist. Kiểm tra hash trước/sau DRY RUN; trước mỗi lần ghi kiểm tra native stable key, preimage, quyền sở hữu vùng; sau ghi đọc lại từng ô và quét vùng bảo vệ/công thức.
+- Công/phí chỉ được bổ sung khi episode tương ứng có đúng một định danh nguồn và có parent OB khớp native theo nhà máy, mã, tên, ngày vào; giữ nguyên hàng con nếu parent chưa đạt.
+- Không nâng watermark/last-good từ phần nguồn PARTIAL. Không đổi công/phí lịch sử xung đột, không ghi forecast và thưởng. Nếu A thất bại, B có thể hoàn tất phần an toàn và lần sau lấy lại preimage mới; không replay mù kế hoạch cũ.
+- Một concurrency group `gla-meta-ads-daily-sync` dùng chung primary, watchdog và chẩn đoán có credentials. Chỉ môi trường Actions/repository định danh đã duyệt và job có coordinator mới được dùng scoped copy.
 
-### Kiểm chứng tại môi trường tiếp nhận
+**185 tests PASS** tại workspace sau bổ sung scoped-copy; bao gồm mất coordinator, thiếu proof, thay preimage, nguồn chưa validation, lý do giữ không biết, đọc lại sai, parent OB thiếu/xung đột và retry không nhân đôi.
 
-- Đã checkout đúng PR #3 tại `10f0c91e3ddbe6394057ac571ae232060f1f0f41`, cài dependencies và chạy `python -m pytest -q`: **153 passed**. Đây là kiểm thử mã, không phải nghiệm thu toàn bộ dữ liệu thật.
-- Đã đọc metadata trực tiếp của A/B và các vùng checkpoint `META_SYNC_HEALTH!A1:I12`, `QL_PIPELINE!A1:T8`. Checkpoint SUCCESS cuối cùng quan sát được của Meta trên A là **17/11/2026**, trên B là **13/11/2026**. Hai file chưa có cùng mốc cập nhật Meta. Không suy ra dữ liệu đầy đủ chỉ từ checkpoint.
-- Đã xác minh tác vụ hiện có “Đồng bộ GLA HR — 2 file (chờ runner)” có lịch 08:00, 13:00, 18:00 theo Asia/Ho_Chi_Minh nhưng đang **tạm dừng**. Lần chạy được ghi nhận gần nhất ngày 17/11 là failed; kết quả chỉ có thông báo lỗi chung, không đủ căn cứ quy lỗi cho token hay dữ liệu. Không tạo hoặc bật tác vụ khác.
-- Đã kiểm tra workflow Meta và watchdog trên `main`: đây là các lịch riêng cho Meta, không phải lịch đồng bộ sáu nhánh A/B. `src.meta_sync.Settings.from_env` hiện nhận **một** `GOOGLE_SHEET_ID`. Workflow xanh không chứng minh B hay các nhánh Lead/PV/OB/công/doanh thu/thưởng đã được cập nhật.
-- Workspace tiếp nhận không có các biến Google/Meta cần thiết, không có private production manifest và bundle chương trình được pin SHA. Chạy canary tại đây dừng an toàn với `GOOGLE_SERVICE_ACCOUNT_JSON_MISSING`; production_writes=0. Hai launcher shell được lưu trước đây chỉ kiểm tra và gọi runner, không chứa manifest hay bộ chương trình private.
-- Kết nối Google Drive của Work Mode đọc được A/B, nhưng không cấp credential cho tiến trình Python. GitHub connector cũng không xuất giá trị Actions Secrets. Không đưa secrets ra log, file báo cáo hoặc chat.
+## Kiểm thử Meta hai file
 
-### Sửa chẩn đoán credentials trong PR
+[Run 44269885851](https://github.com/DelDeto/GLA-HR-Recruitment-Analytics/actions/runs/44269885851), hoàn tất 15:46:55 ngày 18/11/2026: **PASS**, 175 unit tests và Meta A/B DRY RUN trực tiếp cùng snapshot. Đọc 111 dòng trong cửa sổ cập nhật; A dự kiến cập nhật 20 dòng, B cập nhật 95 dòng (70 bổ sung), B thêm 3 mapping chiến dịch. Production writes = 0.
 
-Tại workspace mới, canary trước đây trả lỗi Meta chung khi biến account chưa được cấp vì gọi bộ phân tích account trước khi kiểm tra biến. Đã sửa thứ tự kiểm tra và chuyển lỗi cấu hình account về mã an toàn `META_RUNTIME_TOKEN_OR_AUTHORIZED_ACCOUNT_SCOPE_MISSING`. Sáu ca kiểm thử chứng minh cấu hình thiếu/sai/phạm vi account không được phép đều dừng trước khi tạo API client; không in token/account sai. Sau sửa: **159 kiểm thử PASS**. Thay đổi chỉ ở chẩn đoán chỉ đọc, không sửa writer hay workflow. Private bundle phải được kiểm tra/pin lại nếu bao gồm module thay đổi.
+## Cấu hình lịch dự kiến triển khai
 
-### Bước còn thiếu để FULL DRY RUN
+Tái sử dụng workflow primary hiện hữu, thay các lượt 07:15/07:25/07:45/08:15 bằng **08:00, 13:00, 18:00 giờ Việt Nam** (`0 1,6,11 * * *` UTC). Cả ba lượt phải refresh, không skip vì checkpoint cùng ngày. Watchdog hiện hữu chỉ bù khi thiếu checkpoint, dùng cùng khóa và kiểm tra riêng A/B. Không tạo workflow lịch ghi thứ hai; tác vụ ChatGPT cũ giữ tạm dừng.
 
-Cần gắn vào phiên làm việc **runtime private đã giữ bundle V2.4 và `round6-deployment-decision/production-manifest.json`**, đồng thời cấp các biến Google/Meta qua kho bí mật của runtime. Nếu bundle còn ở môi trường cũ, đưa nguyên bundle và manifest sang runtime private được chọn; không đặt trong repository public hoặc workflow inputs. Không cần gửi token trong chat hoặc chia sẻ lại Google Sheets khi quyền hiện tại vẫn đạt.
-
-Trong runtime đó, xác minh SHA theo mã PR đang chọn, cập nhật `as_of` đúng ngày Việt Nam, giữ `deployment_approved=false`, chạy launcher chỉ đọc hiện có. FULL DRY RUN cần đọc lại nguồn và A/B, chụp Meta trong cùng lần chạy, phân loại lỗi theo trường thực tế tiêu thụ, xuất kế hoạch/hash từng nhánh và file, kiểm tra vùng bảo vệ, so sánh cùng kỳ/nhóm và giữ last-good. Chưa có kết quả này thì không đề nghị ghi production.
-
-Khi nghiệm thu đủ và được duyệt ghi riêng, dùng lại lịch hiện có; mọi thay đổi writer Meta phải đi kèm kiểm kê vùng sở hữu và chống chạy đồng thời. Không bật lịch chỉ để thử credentials. Giữ nguyên chính sách NHÁP, phí/override đã duyệt và dữ liệu lịch sử trong thời gian chờ.
-
-
-### Kiểm chứng credentials trực tiếp sau tiếp nhận
-
-Đã thực sự rerun **job chỉ đọc hiện có**, không dispatch workflow ghi Meta: run `44219333231`, attempt 2, job `134645977393`, hoàn tất **14:29:54 ngày 18/11/2026 (giờ Việt Nam)**. Canary dùng commit gốc `7522eea243a4282bc755d597cb34a8d6c89e4473`; do đó không được coi là FULL DRY RUN của commit mới. Kết quả:
-
-- Canary PASS; service account đọc được các tài nguyên được duyệt, A/B đều canEdit.
-- Đọc đủ **16/16 file, 182 tab**, lỗi vận chuyển `errors=[]`.
-- Phát hiện **2.037 ô lỗi công thức nguồn**. Đây là số mới; không dùng số 2.045 của lần trước để kết luận hiện trạng. Chưa phân loại theo consumer của runner private trong lần này.
-- Meta Marketing API trực tiếp: **3 tài khoản, 3.838 dòng**, kỳ 01/01–18/11/2026, snapshot SHA256 `5f187e0a1275ac413c30ee060de76c5db6f297a6a27cdbc8ca1a31fbd59b3968`.
-- `production_writes=0`, `release_state=BLOCKED`, `full_v24_e2e=NOT_RUN_DATA_RELEASE_GATES_REMAIN`. Canary không giữ bản dữ liệu raw sau job; không phải bộ dữ liệu để giả lập một lần FULL DRY RUN mới.
-
-Bản sửa `4693178ba26a086814504dc814da1050193066f9` có **159 tests PASS** tại workspace và CI push `44258957234`, PR `44258963991`. Hai CI mới không chạy bước canary và không thay thế bằng chứng kiểm thử trực tiếp ở trên.
-
-
-## Chuẩn bị triển khai runner lần đầu — thông tin bổ sung 18/11/2026
-
-Người dùng cho biết có thể chưa từng cài runner private V2.4. Vì vậy không yêu cầu người dùng tìm một runtime đã cài sẵn. Thông tin manifest/bundle private trong báo cáo cũ chỉ là bằng chứng của workspace trước; không chứng minh còn một dịch vụ vận hành hiện tại. Cần chuẩn bị triển khai lần đầu.
-
-Đã đọc lại các ô mã nguồn được chỉ định trên A và khôi phục nguyên bytes của sáu chương trình vào thư mục tạm private: collector, normalizer, XML reader và ba chương trình thưởng. SHA256 của collector và normalizer khớp ô hash khai báo hiện hành; bốn chương trình thưởng có hash inventory riêng và đều qua phân tích cú pháp. **Chưa thực thi các chương trình này trong bước khôi phục, chưa có manifest hoàn chỉnh được nghiệm thu, chưa cài một dịch vụ chạy lịch.** Không đưa nội dung mã private, ID nguồn, nhân sự hoặc credentials vào repository public.
-
-Phát hiện dependency còn thiếu trong requirements public: chương trình XML reader đã triển khai sử dụng `lxml.etree`, nhưng requirements chưa khai báo lxml. Đã bổ sung dependency để môi trường cài mới không lỗi import ở nhánh thưởng. Thay đổi này không bật chính sách thưởng, không thay đổi số liệu và không cấp quyền ghi.
-
-Phương án triển khai đề xuất: tận dụng GitHub Actions có credentials hiện hữu cho môi trường chỉ đọc đầu tiên; đóng gói các chương trình pin SHA và manifest disabled vào vùng tạm riêng của job. Chưa thay workflow hoặc thêm job trong bước này. Sau khi rà soát đầy đủ hợp đồng schema và cấu hình đối soát, mới nối runner với job chỉ đọc. GitHub-hosted job tạm thời chưa đủ cho production yêu cầu state bền vững và khóa một writer; phải thiết kế lưu trữ private/checkpoint trước khi bật lại lịch cũ. Không coi khôi phục mã hoặc cài dependencies là hoàn thành FULL DRY RUN.
+Trạng thái triển khai thực tế, SHA cố định và lần chạy ghi đầu tiên phải được ghi bổ sung sau khi GitHub xác nhận; đoạn cấu hình dự kiến này chưa chứng minh lịch mới đã bật. GitHub cron có thể chạy trễ so với phút cấu hình.

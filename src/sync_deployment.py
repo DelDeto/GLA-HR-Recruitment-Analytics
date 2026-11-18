@@ -127,7 +127,7 @@ class InitialSnapshots:
     def __getattr__(self, name): return getattr(self.transport, name)
 
 
-def run(state):
+def run(state, *, scoped_apply=False):
     transport = forbid_writes(GoogleTransport.from_env(state))
     resources = read_hints(transport, os.getenv('GOOGLE_SHEET_ID',''))
     if set(resources) != set(RESOURCE_HASHES): raise SyncBlocked('DEPLOYMENT_RESOURCE_DISCOVERY_INCOMPLETE')
@@ -171,6 +171,10 @@ def run(state):
                                   'rows':len(captured['rows']), 'to':captured['to']}
     else:
         report['meta_capture'] = {'state':'BLOCKED','reason':'FRESH_META_CAPTURE_NOT_AVAILABLE'}
+    if scoped_apply:
+        from .sync_scoped_copy import copy_validated
+        report['scoped_copy']=copy_validated(stage,report,GoogleTransport.from_env(state),state)
+        report['production_writes']=report['scoped_copy']['write_requests']
     state.save('installation-dry-run-report.json', report)
     return report
 
