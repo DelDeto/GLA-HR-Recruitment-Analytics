@@ -38,6 +38,7 @@ jobs:
         shell: bash
         run: |
           case "$(git log -1 --format=%s "$V24_HEAD_SHA")" in
+            *"[v24-full-dry-run]"*) echo 'full=true' >> "$GITHUB_OUTPUT" ;;
             *"[v24-access]"*) echo 'run=true' >> "$GITHUB_OUTPUT" ;;
             *) echo 'run=false' >> "$GITHUB_OUTPUT" ;;
           esac
@@ -50,3 +51,12 @@ jobs:
           META_AD_ACCOUNT_IDS: ${{ secrets.META_AD_ACCOUNT_IDS }}
           META_API_VERSION: v27.0
         run: python -m src.sync_access_check --scan-sources --read-meta
+      - name: V2.4 first private installation and six-branch FULL DRY RUN
+        if: steps.v24_diagnostic.outputs.full == 'true'
+        env:
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          META_AD_ACCOUNT_IDS: ${{ secrets.META_AD_ACCOUNT_IDS }}
+          META_API_VERSION: v27.0
+        run: python -m src.sync_deployment

@@ -74,6 +74,13 @@ def resolve_contracts(source,options):
     result=dict(options.get('tab_contracts',{}).get(source['file_id'],{}))
     for tab in source['tabs']:
         if str(tab['id'])in result:continue
+        import hashlib
+        reviewed=options.get('reviewed_title_contracts',{}).get(source['file_id'],{}).get('by_title_hash',{})
+        pinned=reviewed.get(hashlib.sha256(tab.get('name','').encode()).hexdigest())
+        if pinned:
+            # Header validation and consumer SHA proof still run downstream.
+            result[str(tab['id'])]=dict(pinned)
+            continue
         matches=[]
         for template in options.get('schema_templates',[]):
             if template.get('source_role')!=role or template.get('state')!='PARSED':continue
