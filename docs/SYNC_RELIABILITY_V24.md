@@ -408,3 +408,30 @@ variables and private manifest. A Secrets settings URL cannot export secret
 values into this workspace. Full E2E remains separately BLOCKED until actual
 runtime access and all data/case acceptance gates pass. See the latest report
 for attempt IDs and private manual-review instructions.
+
+
+### User-confirmed intake exclusion (18 November)
+
+CTECH is explicitly not used according to the user. `sync_source_scope` binds
+that decision to the reviewed resource hash; it is excluded from active source
+requirements, never substituted for numeric zero. A changed resource identity
+under that role blocks review. The private manifest removes only its explicit
+file entry, retains historical scope evidence and pins the revised adapters.
+The fixed legacy collector form loop is adapted in memory for this approved
+exclusion and restored afterward; its source file/deployed SHA is unchanged.
+Other missing sources remain errors. Historical facts and count-decrease
+protection remain unchanged; no production migration or source deletion occurs.
+
+
+HTTP 429 now waits one full 60-second quota window between bounded retries.
+The former initial exponential delays could exhaust all attempts within about
+31 seconds while Sheets' minute quota was still active. HTTP 5xx keeps its
+bounded backoff. Retry does not append, change the request or suppress a failed
+source; incomplete scans retain last-good and remain PARTIAL/BLOCKED.
+
+
+The revised-scope canary run `44219333231` passes all 13 active capability checks,
+A/B canEdit, 16/16 full source reads (182 tabs), 148 tests and direct Meta through
+18 November. It observes 2,045 native source formula-error cells. The private
+consumer-aware validation must reclassify those current cells; transport/canary
+PASS cannot certify source semantics, native target parity or full E2E readiness.

@@ -1,4 +1,4 @@
-# V2.4 release report — 17 November 2026
+# V2.4 release report — 18 November 2026
 
 **A: BLOCKED. B: BLOCKED. READY_FOR_PRODUCTION_DRY_RUN is not achieved.**
 
@@ -178,9 +178,9 @@ all three Meta workflow files are unchanged. Secrets stay inside Actions.
 
 | Credentialed check | A | B |
 |---|---|---|
-| Master reference read / 14 reviewed resources discovered | PASS, bounded cells only | NOT_RUN native target scan |
+| Master reference read / 13 active resources discovered | PASS, bounded cells only | NOT_RUN native full target scan |
 | Drive capability / canEdit | PASS: canEdit=true, retry attempt 2 | PASS: canEdit=true, retry attempt 2 |
-| Complete source content / hidden tabs / new files | PARTIAL: 16/17 files, 182 tabs; CTECH 404 | PARTIAL: same shared source scan |
+| Active source content scan | PASS: 16/16 files, 182 tabs | PASS: same shared source scan |
 | Full native formulas / immutable hashes / live filters | BLOCKED in credentialed run | BLOCKED in credentialed run |
 | Equivalent-period live A/B acceptance | BLOCKED | BLOCKED |
 | READY_FOR_PRODUCTION_DRY_RUN | BLOCKED | BLOCKED |
@@ -223,22 +223,24 @@ there is no reason to request new credentials or change their UI.
 
 ## Manual actions still needed
 
-1. Resolve the two CRM identities and supply actual received dates/identities
+1. Reclassify the latest 2,045 native source formula-error cells against actual
+   consumer contracts in the private full runner; do not exempt them based on
+   the older 287-error export. The earlier two unresolved CRM identities remain
+   historical open review cases until fresh proof resolves them. Supply actual received dates/identities
    for retained additional-intake rows where available. Do not infer dates from
    file modification time or manufacture applicant IDs.
 2. Review historical Lead count decreases and the six event-alias groups using
    the private before/proposed/source evidence. Do not discard confirmed IDs.
 3. Reconcile the three Quanta applicants' factory/OB termination evidence before
    promoting the 135 held fee rows. Provenance-only changes are separate.
-4. Google Drive API activation is now verified; no further activation action
-   is needed. Resolve CTECH's HTTP 404: the source owner should confirm the
-   existing source link and grant Viewer access to the service account's
-   `client_email` from the private credential. Do not paste the key into chat.
-   Then rerun the existing read-only job in run `44119457932` and require 17/17
-   current files with no access errors. Do not remove CTECH from scope.
-   The full private runner still needs its disabled manifest and pinned
-   programs; the canary is not that full runner. Re-capture Meta for native
-   parity in that environment after source and business gates are resolved.
+4. CTECH is no longer a required active input: the user explicitly confirmed
+   it is not used. No sharing action is required for that source. This approved
+   scope change supersedes the earlier instruction not to omit CTECH. Keep
+   existing historical facts and snapshots; never silently lower prior totals.
+   The current full private runner still needs a credential-bearing environment,
+   its disabled manifest and verified pinned deployment programs. The canary
+   does not execute the full business graph or preserve its ephemeral snapshots
+   for a later run; capture Meta and targets again in that private environment.
 5. Provide an actually confirmed reward policy/case for live acceptance. All
    12 NHÁP policies remain inactive; no approval or award execution is invented.
 6. Run the credentialed full V2.4 DRY RUN after the relevant gates are resolved;
@@ -248,3 +250,76 @@ there is no reason to request new credentials or change their UI.
 Private review files, role/source IDs, employee rows and financial proposals are
 outside the public repository. No --apply, merge, scheduler change or new
 workflow/trigger is authorized by this report. Both targets remain BLOCKED.
+
+## User-confirmed unused CTECH source — 18 November
+
+The user stated that CTECH is not used. Commit `07458de4` records an exact,
+resource-hash-bound exclusion rather than treating a missing source as zero.
+
+- Canary discovery/permission requirements and the disabled private manifest
+  exclude this source from active intake. Other sources remain required.
+- The verified legacy collector has a fixed list of forms. A scoped adapter
+  explicitly marks CTECH USER_CONFIRMED_UNUSED; it does not modify the deployed
+  program or its SHA, suppress another missing source, or reuse a stale cache.
+- Retained snapshots give CTECH an explicit VERIFIED_OUT_OF_SCOPE reason.
+  Its two old tabs are not counted as current active coverage. Historical
+  production facts, source snapshots and nondecreasing count guards remain.
+- The previously staged normalized Lead rows contain no CTECH provenance.
+  This is a narrow replay observation, not proof of complete production history.
+- A new disabled private manifest pins the current adapter dependencies and
+  records the user's scope decision. It has not executed the full V2.4 graph.
+- Local tests: **148 PASS**, including exact-source exclusion, changed-identity
+  rejection, other-source failure propagation and retained-snapshot scope.
+  Credentialed canary results for the revised active scope are recorded below.
+
+The first revised-scope canary (run `44218673622`, job `134514808541`,
+commit `07458de4`) verifies all 13 active resource capabilities, including A/B
+canEdit. It reads 14/16 files, 91 tabs, but reaches HTTP 429 on the two large
+Sales sources. CTECH is correctly excluded, not the cause of this failure.
+Meta capture passes for 3 accounts / 3,837 rows through 18 November. Incomplete
+formula-error totals remain unknown. No source is dropped for a quota failure.
+
+Commit `7522eea2` makes HTTP 429 retries wait a full 60-second quota window;
+other transient statuses retain bounded backoff. Tests verify the exact same
+request is retried and missing-source errors remain visible. This fixes the
+old total retry-delay budget of about 31 seconds, which could expire before
+Sheets' per-minute quota reset. A fresh credentialed retry is recorded below.
+
+A targeted private replay additionally invokes the actual SHA-verified collector
+against the earlier 17 November snapshot with CTECH removed: PASS on 16 source
+files, no excluded cache opened, zero production writes. This verifies the
+legacy adapter boundary, not fresh source coverage, a full business run or a
+new 18 November deployment-anchor check. The six private program hashes and
+prior native anchor evidence remain separate from the credentialed canary.
+
+## Latest revised-scope canary — PASS, release still BLOCKED
+
+Run **`44219333231`**, job **`134516998914`**, diagnostic attempt
+`61a97aa23f5f4995bf353cb2eb283edb`, code **`7522eea2`**:
+
+- **148 CI tests PASS**; credentialed read-only canary **PASS**.
+- All **13 active resource** capability checks PASS; A/B canEdit=true.
+- **16/16 files, 182 tabs**, no transport errors. The quota-window retry fixes
+  the preceding partial scan without removing any active Sales source.
+- CTECH remains explicitly USER_CONFIRMED_UNUSED, outside current active
+  coverage; no historical row or source file is deleted.
+- Native source scan observes **2,045 formula-error cells**. This is a fresh
+  count of cells across the active source set, not applicants. The canary does
+  not classify them by business consumer and cannot certify their impact.
+  Prior 17 November audit classifications and two critical CRM cases must be
+  revalidated against this current snapshot; do not assume all current errors
+  are harmless or reuse an old error count as current evidence. Raw source
+  contents are private/ephemeral, so a fresh full private run must collect and
+  classify them again. Access PASS does not mean business validation PASS.
+- Direct Meta capture PASS: 3 accounts, **3,837 campaign/day rows**, **1 January
+  through 18 November 2026**, snapshot SHA256
+  `6b45638f4ae522f7f08df088b4c6f9686ea3e657f74342211fc2dc100481a1b7`.
+  No native cost parity or permission to replace closed totals is inferred.
+- Production writes **0**; full business E2E NOT_RUN_DATA_RELEASE_GATES_REMAIN.
+  Native target formula/protected-hash/filter checks, current dependency anchors,
+  equivalent-period A/B acceptance, event aliases, immutable Quanta fees and an
+  actually confirmed reward-policy case remain separate release gates.
+
+Google access/API configuration and the user-confirmed CTECH scope decision no
+longer block the access canary. A/B overall readiness remains BLOCKED; there is
+no production deployment, merge, scheduler or trigger change.
