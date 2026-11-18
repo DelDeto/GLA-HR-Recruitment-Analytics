@@ -174,11 +174,14 @@ def capture_idl_report():
     import json
     from decimal import Decimal
     from src.meta_sync import MetaClient
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     args = argparse.Namespace(days=8, dry_run=False)
     settings = Settings.from_env(args)
     expected = "d3ee04aafdbd507a56987c9e577d278bcb478725bf65d876e2ac2104c1203e3b"
     if hashlib.sha256(settings.spreadsheet_id.encode()).hexdigest() != expected:
         raise SyncError("Report destination mismatch")
+    if len(settings.accounts) != 3:
+        raise SyncError("Expected all three configured advertising accounts")
     begin, end = date(2026, 9, 1), date(2026, 11, 18)
     api = MetaClient(settings.access_token, settings.api_version)
     sheet = GoogleSheets(settings.google_json, settings.spreadsheet_id)
@@ -205,7 +208,7 @@ def capture_idl_report():
                 if not isinstance(result.get("data"), list):
                     raise SyncError("Report insights missing data")
                 for r in result["data"]:
-                    if not re.search(r"\\bIDL\\b", str(r.get("campaign_name", "")), re.I):
+                    if not re.search(r"(^|[^A-Za-z])IDL([^A-Za-z]|$)", str(r.get("campaign_name", "")), re.I):
                         continue
                     day = date.fromisoformat(r["date_start"])
                     ident = normalize_id(r["campaign_id"])
