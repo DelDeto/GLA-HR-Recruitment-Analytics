@@ -1,6 +1,6 @@
 # GLA HR V2.4 — Kiểm chứng và triển khai ngày 18/11/2026
 
-## Kết luận hiện tại
+## FULL DRY RUN trước khi ghi
 
 FULL DRY RUN trực tiếp đã hoàn tất lúc **15:25:36 ngày 18/11/2026, giờ Việt Nam**. Kết quả **PARTIAL, chưa đạt nghiệm thu toàn bộ**, ghi production **0**. Không bật thưởng NHÁP hoặc sửa các fact lịch sử xung đột.
 
@@ -72,3 +72,12 @@ Có 2 batch ghi nguồn trên B; không nâng watermark/last-good từ nguồn P
 Full scan lần này vẫn đủ 16 file/182 tab, Meta 3 tài khoản/3.838 dòng. Lỗi công thức nguồn hiện là 2.045 (5 trường tiêu thụ cách ly, 2.040 loại trừ đã kiểm chứng). Đối soát cùng kỳ tháng 9 vẫn PASS; cache tổng thể vẫn chưa bằng nhau. Trạng thái job failure/exit 2 phản ánh A bị giữ, không phải tuyên bố toàn bộ dữ liệu đã đồng bộ.
 
 Đã yêu cầu **rerun đúng job cũ**, attempt 2, trên snapshot mới để thử lại A. Không replay kế hoạch cũ và không thêm lịch. Kết quả attempt 2 chưa được xác nhận tại thời điểm cập nhật đoạn này.
+
+
+### Khôi phục tự động khi đích thay đổi trước ghi
+
+Runtime mới `3fc7bdca0f67ba31cbf170cef80cb109dd9fd4cf` bổ sung tối đa một lần thử lại bằng thư mục private, nguồn, snapshot đích và kế hoạch hoàn toàn mới khi phát hiện `NATIVE_TARGET_CHANGED_DURING_DRY_RUN` hoặc `SCOPED_COPY_PROTECTED_PREIMAGE_CHANGED`. Không replay stage cũ, không nới quyền vùng ghi, không nâng watermark, không thử lại lỗi đọc lại không rõ nguyên nhân. Sau hai lần vẫn xung đột thì giữ trạng thái HELD. Dry-run không tự chuyển sang apply.
+
+**194 tests PASS** tại CI push [44273631080](https://github.com/DelDeto/GLA-HR-Recruitment-Analytics/actions/runs/44273631080), gồm state directory mới cho từng lượt, giới hạn số lần thử, cộng số batch được xác nhận, giữ lỗi sau lần thử cuối và không retry lỗi readback. Primary/watchdog trên main đã pin runtime mới qua `6bbed679ce027d505d79a0dbe0f378ed0372f8ea` và `7210426aab316e06acf223e9e8707bd031875106`; đã đọc lại để xác minh. Lượt retry production đang chạy vẫn dùng runtime cũ được pin theo commit của run; cơ chế mới áp dụng cho lượt được tạo sau cập nhật này.
+
+Native Meta trong attempt 2 đã xác minh SUCCESS A lúc **16:08:07**, B lúc **16:08:11**. Mỗi file fetched 111, changed 13, appended 0, new campaigns 0; đây là cập nhật lại các khóa hiện hữu, không bổ sung dòng trùng.
