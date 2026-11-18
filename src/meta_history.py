@@ -169,5 +169,92 @@ def main():
         return 1
 
 
+def capture_idl_report():
+    """One-off 2026-09-01..2026-11-18 report; Meta reads, private Sheets output only."""
+    import json
+    from decimal import Decimal
+    from src.meta_sync import MetaClient
+    args = argparse.Namespace(days=8, dry_run=False)
+    settings = Settings.from_env(args)
+    expected = "d3ee04aafdbd507a56987c9e577d278bcb478725bf65d876e2ac2104c1203e3b"
+    if hashlib.sha256(settings.spreadsheet_id.encode()).hexdigest() != expected:
+        raise SyncError("Report destination mismatch")
+    begin, end = date(2026, 9, 1), date(2026, 11, 18)
+    api = MetaClient(settings.access_token, settings.api_version)
+    sheet = GoogleSheets(settings.google_json, settings.spreadsheet_id)
+    now = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh"))
+    tab = "IDL_API_" + now.strftime("%Y%m%d_%H%M%S")
+    fetched = now.strftime("%Y-%m-%d %H:%M:%S")
+    headers = ["date", "account_id", "account_name", "campaign_id", "campaign_name",
+               "spend", "impressions", "clicks", "messaging_conversation_started_7d",
+               "currency", "fetched_at_ict", "source"]
+    rows, coverage, seen = [], [], set()
+    for account in settings.accounts:
+        info = api._request(f"act_{account}", {"fields": "id,name,currency,timezone_name"})
+        if normalize_id(info.get("id")) != account or info.get("currency") != "VND":
+            raise SyncError("Report account metadata or currency mismatch")
+        count = 0
+        for lo, hi in month_windows(begin, end):
+            params = {"fields": "date_start,campaign_id,campaign_name,spend,impressions,clicks,actions",
+                      "level": "campaign", "time_increment": 1, "limit": 500,
+                      "use_unified_attribution_setting": "true",
+                      "time_range": json.dumps({"since": lo.isoformat(), "until": hi.isoformat()})}
+            cursors = set()
+            for _ in range(50):
+                result = api._request(f"act_{account}/insights", params)
+                if not isinstance(result.get("data"), list):
+                    raise SyncError("Report insights missing data")
+                for r in result["data"]:
+                    if not re.search(r"\\bIDL\\b", str(r.get("campaign_name", "")), re.I):
+                        continue
+                    day = date.fromisoformat(r["date_start"])
+                    ident = normalize_id(r["campaign_id"])
+                    key = (account, day, ident)
+                    if key in seen or not lo <= day <= hi:
+                        raise SyncError("Duplicate or out-of-window report row")
+                    seen.add(key)
+                    metrics = [Decimal(str(r.get(k, 0) or 0)) for k in ("spend", "impressions", "clicks")]
+                    matching = [a for a in r.get("actions", [])
+                                if a.get("action_type") == "onsite_conversion.messaging_conversation_started_7d"]
+                    if len(matching) > 1:
+                        raise SyncError("Duplicate messaging action")
+                    mess = Decimal(str(matching[0].get("value", 0))) if matching else Decimal(0)
+                    if any(not v.is_finite() or v < 0 for v in metrics + [mess]):
+                        raise SyncError("Invalid report metric")
+                    if any(v != v.to_integral_value() for v in metrics[1:] + [mess]):
+                        raise SyncError("Non-integral report count")
+                    rows.append([google_serial(day), account, str(info["name"]), ident,
+                                 str(r.get("campaign_name", "")), float(metrics[0]),
+                                 int(metrics[1]), int(metrics[2]), int(mess), "VND", fetched,
+                                 "META_MARKETING_API_DIRECT"])
+                    count += 1
+                paging = result.get("paging") or {}
+                if not paging.get("next"):
+                    break
+                cursor = (paging.get("cursors") or {}).get("after")
+                if not cursor or cursor in cursors:
+                    raise SyncError("Invalid report pagination")
+                cursors.add(cursor)
+                params["after"] = cursor
+            else:
+                raise SyncError("Report pagination exceeded limit")
+        coverage.append([account, str(info["name"]), google_serial(begin), google_serial(end),
+                         count, "COMPLETE" if count else "VERIFIED_NO_IDL_ROWS", fetched])
+    if not rows:
+        raise SyncError("No IDL report rows")
+    rows.sort(key=lambda r: (r[0], r[1], r[3]))
+    sheet._request("POST", ":batchUpdate", json={"requests": [
+        {"addSheet": {"properties": {"title": tab, "hidden": True,
+          "gridProperties": {"rowCount": max(1000, len(rows) + 10),
+                             "columnCount": 20, "frozenRowCount": 1}}}}]})
+    sheet.write_ranges([(f"'{tab}'!A1:L1", [headers])])
+    for start in range(0, len(rows), 250):
+        block = rows[start:start + 250]
+        sheet.write_ranges([(f"'{tab}'!A{start + 2}:L{start + 1 + len(block)}", block)])
+    scope_header = ["account_id", "account_name", "from_date", "to_date", "rows", "status", "fetched_at_ict"]
+    sheet.write_ranges([(f"'{tab}'!N1:T{len(coverage) + 1}", [scope_header] + coverage)])
+    LOGGER.info("Direct IDL report complete: tab=%s accounts=%d rows=%d", tab, len(coverage), len(rows))
+
+
 if __name__ == "__main__":
     raise SystemExit(main())
