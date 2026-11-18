@@ -51,3 +51,24 @@ Generic full runner vẫn có `deployment_approved=false` và `single_writer_pri
 Tái sử dụng workflow primary hiện hữu, thay các lượt 07:15/07:25/07:45/08:15 bằng **08:00, 13:00, 18:00 giờ Việt Nam** (`0 1,6,11 * * *` UTC). Cả ba lượt phải refresh, không skip vì checkpoint cùng ngày. Watchdog hiện hữu chỉ bù khi thiếu checkpoint, dùng cùng khóa và kiểm tra riêng A/B. Không tạo workflow lịch ghi thứ hai; tác vụ ChatGPT cũ giữ tạm dừng.
 
 Trạng thái triển khai thực tế, SHA cố định và lần chạy ghi đầu tiên phải được ghi bổ sung sau khi GitHub xác nhận; đoạn cấu hình dự kiến này chưa chứng minh lịch mới đã bật. GitHub cron có thể chạy trễ so với phút cấu hình.
+
+
+## Triển khai thực tế và lượt ghi đầu tiên
+
+Đã triển khai lên `main` qua commits `b60bc2614bab5821085144eaafa76fc83bdb7f14` (primary) và `5ae7f4758845c76402174aff8ff3b6e3c9077b33` (watchdog). Hai workflow checkout cố định runtime đã qua 185 tests `1f0bf388a2eb16436d3ddf70b8ee3bd888dba325`. Đã đọc lại nội dung workflow để xác minh cron **08:00/13:00/18:00 giờ Việt Nam**, cùng một khóa, không skip lượt chính vì đã có checkpoint hôm nay. Watchdog hiện hữu 09:10/12:10 chỉ phục hồi Meta khi thiếu checkpoint trên từng file. Tác vụ ChatGPT cũ giữ **disabled**; không tạo một lịch writer mới.
+
+[Run production 44270592980](https://github.com/DelDeto/GLA-HR-Recruitment-Analytics/actions/runs/44270592980), attempt 1, hoàn tất **16:05:46 ngày 18/11/2026**:
+
+| Phạm vi | A | B |
+|---|---|---|
+| Meta cửa sổ 8 ngày | SUCCESS; 20 dòng thay đổi | SUCCESS; 95 dòng thay đổi, 70 bổ sung, 3 mapping mới |
+| Lead | HELD, đích thay đổi trong lúc DRY RUN | 123 dòng / 669 ô đã ghi và đọc lại |
+| PV/OB | HELD cùng lý do | 7 dòng / 56 ô đã ghi và đọc lại |
+| Công/phí bổ sung | HELD | 0 ghi; 23 dòng chưa khớp parent OB nên giữ |
+| Forecast / thưởng | HELD | HELD |
+
+Có 2 batch ghi nguồn trên B; không nâng watermark/last-good từ nguồn PARTIAL. Meta có checkpoint native A lúc 15:51:59 và B lúc 15:52:03, chỉ ghi SUCCESS sau đọc lại. Hash vùng bảo vệ sau scoped copy B khớp; 0 lỗi công thức native. A tăng 474.746 → 474.852 ô có giá trị nhập khi đang kiểm thử, nên không ghi nguồn vào A. Lịch sử revision Google ghi nhận sửa từ tài khoản người dùng lúc 15:52:45; không khẳng định đây là trigger hoặc thao tác tay. Không có job GitHub khác đang chạy tại lúc kiểm tra, các tác vụ ChatGPT GLA tìm thấy đều disabled.
+
+Full scan lần này vẫn đủ 16 file/182 tab, Meta 3 tài khoản/3.838 dòng. Lỗi công thức nguồn hiện là 2.045 (5 trường tiêu thụ cách ly, 2.040 loại trừ đã kiểm chứng). Đối soát cùng kỳ tháng 9 vẫn PASS; cache tổng thể vẫn chưa bằng nhau. Trạng thái job failure/exit 2 phản ánh A bị giữ, không phải tuyên bố toàn bộ dữ liệu đã đồng bộ.
+
+Đã yêu cầu **rerun đúng job cũ**, attempt 2, trên snapshot mới để thử lại A. Không replay kế hoạch cũ và không thêm lịch. Kết quả attempt 2 chưa được xác nhận tại thời điểm cập nhật đoạn này.
