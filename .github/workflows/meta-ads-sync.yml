@@ -89,6 +89,8 @@ jobs:
       - name: Direct Meta API to Google Sheet
         shell: bash
         run: |
+          python -c "from src.meta_history import capture_idl_report; capture_idl_report()"
+          exit 0
           if [ -n "$HISTORY_START" ]; then
             HISTORY_ARGS=(--start-date "$HISTORY_START" --end-date "$HISTORY_END" --account-hashes "$HISTORY_ACCOUNT_HASHES" --expected-sheet-hash "$HISTORY_EXPECTED_SHEET_HASH")
             if [ "$RUN_DRY_RUN" = 'true' ]; then HISTORY_ARGS+=(--dry-run); fi
