@@ -1,4 +1,4 @@
-name: GLA HR — Independent Meta sync watchdog V1.1
+name: GLA HR — Independent Meta sync watchdog V2.4
 
 on:
   workflow_dispatch:
@@ -27,6 +27,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: 1f0bf388a2eb16436d3ddf70b8ee3bd888dba325
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -51,4 +53,4 @@ jobs:
         run: |
           # A successful checkpoint stops this run without calling Meta.
           # Otherwise perform a guarded 8-day (or wider outage-backfill) upsert.
-          python -m src.meta_sync --days 8 --skip-if-synced --run-kind watchdog
+          python -m src.meta_dual_sync --days 8 --skip-if-synced --run-kind watchdog
