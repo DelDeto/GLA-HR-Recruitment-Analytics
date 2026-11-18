@@ -62,7 +62,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: 1f0bf388a2eb16436d3ddf70b8ee3bd888dba325
+          ref: 3fc7bdca0f67ba31cbf170cef80cb109dd9fd4cf
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
