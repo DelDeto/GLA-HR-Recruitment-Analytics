@@ -108,8 +108,17 @@ def access_checks(transport,resources):
 def meta_check(state):
     from .meta_sync import MetaClient,parse_accounts
     from .sync_meta_snapshot import capture,validate
-    token=os.getenv('META_ACCESS_TOKEN');accounts=parse_accounts(os.getenv('META_AD_ACCOUNT_IDS'))
-    if not token or {hashlib.sha256(a.encode()).hexdigest()for a in accounts}!=ACCOUNT_HASHES:
+    token=os.getenv('META_ACCESS_TOKEN');raw_accounts=os.getenv('META_AD_ACCOUNT_IDS')
+    if not token or not raw_accounts or not raw_accounts.strip():
+        raise SyncBlocked('META_RUNTIME_TOKEN_OR_AUTHORIZED_ACCOUNT_SCOPE_MISSING')
+    # Parse failures must retain the same safe diagnostic as missing runtime
+    # secrets, rather than being reported as an unexplained API failure.
+    from .meta_sync import SyncError
+    try:
+        accounts=parse_accounts(raw_accounts)
+    except SyncError:
+        raise SyncBlocked('META_RUNTIME_TOKEN_OR_AUTHORIZED_ACCOUNT_SCOPE_MISSING') from None
+    if {hashlib.sha256(a.encode()).hexdigest()for a in accounts}!=ACCOUNT_HASHES:
         raise SyncBlocked('META_RUNTIME_TOKEN_OR_AUTHORIZED_ACCOUNT_SCOPE_MISSING')
     today=datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).date()
     snapshot=capture(accounts,date(2026,1,1),today,MetaClient(token,os.getenv('META_API_VERSION','v27.0')))

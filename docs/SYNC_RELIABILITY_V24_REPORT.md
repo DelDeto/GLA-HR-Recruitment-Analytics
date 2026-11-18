@@ -35,3 +35,27 @@ Nếu một nguồn thiếu toàn bộ dữ liệu cần thiết, nhánh tiêu t
 3. **Chỉ xác nhận các ngoại lệ khi cần đưa chúng vào dữ liệu.** Bổ sung ngày hoặc định danh có căn cứ cho Lead, xác nhận 7 dòng giảm số lịch sử nếu có đính chính, xác minh hồ sơ và khóa PV/OB khi bổ sung. Phí Quanta yêu cầu bảng công và ngày nghỉ có chứng từ trước khi đổi điều kiện. Thưởng yêu cầu một chính sách thực tế đã xác nhận cùng ca nghiệm thu. Các ngoại lệ này có thể tiếp tục cách ly trong khi duyệt các dòng độc lập đủ căn cứ.
 
 Bản ghi người lao động, nội dung manifest, nguồn riêng và chứng cứ chi tiết được giữ trong các thư mục private. Không merge, thay workflow, bật lịch, tạo trigger hay ghi Sheets trong lần này.
+
+
+## Tiếp nhận trực tiếp trong Work Mode — 18/11/2026
+
+### Kiểm chứng tại môi trường tiếp nhận
+
+- Đã checkout đúng PR #3 tại `10f0c91e3ddbe6394057ac571ae232060f1f0f41`, cài dependencies và chạy `python -m pytest -q`: **153 passed**. Đây là kiểm thử mã, không phải nghiệm thu toàn bộ dữ liệu thật.
+- Đã đọc metadata trực tiếp của A/B và các vùng checkpoint `META_SYNC_HEALTH!A1:I12`, `QL_PIPELINE!A1:T8`. Checkpoint SUCCESS cuối cùng quan sát được của Meta trên A là **17/11/2026**, trên B là **13/11/2026**. Hai file chưa có cùng mốc cập nhật Meta. Không suy ra dữ liệu đầy đủ chỉ từ checkpoint.
+- Đã xác minh tác vụ hiện có “Đồng bộ GLA HR — 2 file (chờ runner)” có lịch 08:00, 13:00, 18:00 theo Asia/Ho_Chi_Minh nhưng đang **tạm dừng**. Lần chạy được ghi nhận gần nhất ngày 17/11 là failed; kết quả chỉ có thông báo lỗi chung, không đủ căn cứ quy lỗi cho token hay dữ liệu. Không tạo hoặc bật tác vụ khác.
+- Đã kiểm tra workflow Meta và watchdog trên `main`: đây là các lịch riêng cho Meta, không phải lịch đồng bộ sáu nhánh A/B. `src.meta_sync.Settings.from_env` hiện nhận **một** `GOOGLE_SHEET_ID`. Workflow xanh không chứng minh B hay các nhánh Lead/PV/OB/công/doanh thu/thưởng đã được cập nhật.
+- Workspace tiếp nhận không có các biến Google/Meta cần thiết, không có private production manifest và bundle chương trình được pin SHA. Chạy canary tại đây dừng an toàn với `GOOGLE_SERVICE_ACCOUNT_JSON_MISSING`; production_writes=0. Hai launcher shell được lưu trước đây chỉ kiểm tra và gọi runner, không chứa manifest hay bộ chương trình private.
+- Kết nối Google Drive của Work Mode đọc được A/B, nhưng không cấp credential cho tiến trình Python. GitHub connector cũng không xuất giá trị Actions Secrets. Không đưa secrets ra log, file báo cáo hoặc chat.
+
+### Sửa chẩn đoán credentials trong PR
+
+Tại workspace mới, canary trước đây trả lỗi Meta chung khi biến account chưa được cấp vì gọi bộ phân tích account trước khi kiểm tra biến. Đã sửa thứ tự kiểm tra và chuyển lỗi cấu hình account về mã an toàn `META_RUNTIME_TOKEN_OR_AUTHORIZED_ACCOUNT_SCOPE_MISSING`. Sáu ca kiểm thử chứng minh cấu hình thiếu/sai/phạm vi account không được phép đều dừng trước khi tạo API client; không in token/account sai. Sau sửa: **159 kiểm thử PASS**. Thay đổi chỉ ở chẩn đoán chỉ đọc, không sửa writer hay workflow. Private bundle phải được kiểm tra/pin lại nếu bao gồm module thay đổi.
+
+### Bước còn thiếu để FULL DRY RUN
+
+Cần gắn vào phiên làm việc **runtime private đã giữ bundle V2.4 và `round6-deployment-decision/production-manifest.json`**, đồng thời cấp các biến Google/Meta qua kho bí mật của runtime. Nếu bundle còn ở môi trường cũ, đưa nguyên bundle và manifest sang runtime private được chọn; không đặt trong repository public hoặc workflow inputs. Không cần gửi token trong chat hoặc chia sẻ lại Google Sheets khi quyền hiện tại vẫn đạt.
+
+Trong runtime đó, xác minh SHA theo mã PR đang chọn, cập nhật `as_of` đúng ngày Việt Nam, giữ `deployment_approved=false`, chạy launcher chỉ đọc hiện có. FULL DRY RUN cần đọc lại nguồn và A/B, chụp Meta trong cùng lần chạy, phân loại lỗi theo trường thực tế tiêu thụ, xuất kế hoạch/hash từng nhánh và file, kiểm tra vùng bảo vệ, so sánh cùng kỳ/nhóm và giữ last-good. Chưa có kết quả này thì không đề nghị ghi production.
+
+Khi nghiệm thu đủ và được duyệt ghi riêng, dùng lại lịch hiện có; mọi thay đổi writer Meta phải đi kèm kiểm kê vùng sở hữu và chống chạy đồng thời. Không bật lịch chỉ để thử credentials. Giữ nguyên chính sách NHÁP, phí/override đã duyệt và dữ liệu lịch sử trong thời gian chờ.

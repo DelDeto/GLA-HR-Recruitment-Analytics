@@ -55,6 +55,24 @@ def test_credential_errors_never_print_exception_payload(monkeypatch,tmp_path):
     assert out['production_writes']==0
 
 
+@pytest.mark.parametrize('token,accounts',[
+    (None,None),('token',None),('token','   '),
+    (None,'123456789'),('token','SENSITIVE_INVALID_ACCOUNT'),
+    ('token','123456789'),
+])
+def test_meta_runtime_configuration_fails_before_any_api_call(monkeypatch,tmp_path,token,accounts):
+    from src import meta_sync
+    for name,value in [('META_ACCESS_TOKEN',token),('META_AD_ACCOUNT_IDS',accounts)]:
+        if value is None:monkeypatch.delenv(name,raising=False)
+        else:monkeypatch.setenv(name,value)
+    def forbidden(*args,**kwargs):
+        pytest.fail('Invalid runtime configuration must never instantiate an API client')
+    monkeypatch.setattr(meta_sync,'MetaClient',forbidden)
+    with pytest.raises(SyncBlocked)as caught:
+        check.meta_check(PrivateState(tmp_path/'private'))
+    assert str(caught.value)=='META_RUNTIME_TOKEN_OR_AUTHORIZED_ACCOUNT_SCOPE_MISSING'
+
+
 def test_passing_canary_cannot_claim_full_v24_readiness(monkeypatch,tmp_path):
     monkeypatch.setattr(check,'RESOURCE_HASHES',{'A':'a','B':'b','folder':'f','source':'s'})
     class Fake:
