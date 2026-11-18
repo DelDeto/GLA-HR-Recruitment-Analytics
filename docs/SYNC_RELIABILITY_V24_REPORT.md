@@ -1,5 +1,12 @@
 # GLA HR V2.4 — Kiểm chứng và triển khai ngày 18/11/2026
 
+## Trạng thái vận hành đã xác nhận
+
+**Đã bật lịch bắt đầu chạy 08:00, 13:00, 18:00 hằng ngày, giờ Việt Nam, trên workflow GitHub Actions hiện hữu.** Dùng credentials đã cấu hình; không cần cài runner trên máy cá nhân hoặc gửi token. Tác vụ ChatGPT cũ vẫn disabled để tránh writer trùng.
+
+Lượt production thử lại hoàn tất **16:24:36 ngày 18/11/2026**, [run 44270592980, attempt 2](https://github.com/DelDeto/GLA-HR-Recruitment-Analytics/actions/runs/44270592980), job `134693960235`: **SUCCESS cho các phần độc lập đã kiểm chứng**. Ads đã cập nhật A/B; Lead/PV đã được ghi và đọc lại trên cả hai file. Đây **chưa phải nghiệm thu FULL V2.4**: công/phí bổ sung chưa khớp parent, lịch sử xung đột, dự báo và thưởng tiếp tục được giữ; full-source watermark không được nâng.
+
+
 ## FULL DRY RUN trước khi ghi
 
 FULL DRY RUN trực tiếp đã hoàn tất lúc **15:25:36 ngày 18/11/2026, giờ Việt Nam**. Kết quả **PARTIAL, chưa đạt nghiệm thu toàn bộ**, ghi production **0**. Không bật thưởng NHÁP hoặc sửa các fact lịch sử xung đột.
@@ -71,7 +78,7 @@ Có 2 batch ghi nguồn trên B; không nâng watermark/last-good từ nguồn P
 
 Full scan lần này vẫn đủ 16 file/182 tab, Meta 3 tài khoản/3.838 dòng. Lỗi công thức nguồn hiện là 2.045 (5 trường tiêu thụ cách ly, 2.040 loại trừ đã kiểm chứng). Đối soát cùng kỳ tháng 9 vẫn PASS; cache tổng thể vẫn chưa bằng nhau. Trạng thái job failure/exit 2 phản ánh A bị giữ, không phải tuyên bố toàn bộ dữ liệu đã đồng bộ.
 
-Đã yêu cầu **rerun đúng job cũ**, attempt 2, trên snapshot mới để thử lại A. Không replay kế hoạch cũ và không thêm lịch. Kết quả attempt 2 chưa được xác nhận tại thời điểm cập nhật đoạn này.
+Đã **rerun đúng job cũ**, attempt 2, trên snapshot mới để thử lại A. Không replay kế hoạch cũ và không thêm lịch. Lượt thử lại đã hoàn tất; kết quả ghi bên dưới.
 
 
 ### Khôi phục tự động khi đích thay đổi trước ghi
@@ -81,3 +88,17 @@ Runtime mới `3fc7bdca0f67ba31cbf170cef80cb109dd9fd4cf` bổ sung tối đa m�
 **194 tests PASS** tại CI push [44273631080](https://github.com/DelDeto/GLA-HR-Recruitment-Analytics/actions/runs/44273631080), gồm state directory mới cho từng lượt, giới hạn số lần thử, cộng số batch được xác nhận, giữ lỗi sau lần thử cuối và không retry lỗi readback. Primary/watchdog trên main đã pin runtime mới qua `6bbed679ce027d505d79a0dbe0f378ed0372f8ea` và `7210426aab316e06acf223e9e8707bd031875106`; đã đọc lại để xác minh. Lượt retry production đang chạy vẫn dùng runtime cũ được pin theo commit của run; cơ chế mới áp dụng cho lượt được tạo sau cập nhật này.
 
 Native Meta trong attempt 2 đã xác minh SUCCESS A lúc **16:08:07**, B lúc **16:08:11**. Mỗi file fetched 111, changed 13, appended 0, new campaigns 0; đây là cập nhật lại các khóa hiện hữu, không bổ sung dòng trùng.
+
+
+### Kết quả attempt 2 và đối soát sau copy
+
+- Source run nội bộ `2f05df458e3647b5c02decdb41562a1594dd6706c49aed0476bca90e2c153eb2`. Đọc đủ 16/16 file, 182 tab, 0 tab chưa xác minh. Meta API full-year vẫn 3 tài khoản/3.838 dòng; số lỗi công thức nguồn 2.045 (5 tiêu thụ cách ly, 2.040 đã loại trừ).
+- A: **123 dòng Lead / 669 ô** và **7 dòng PV/OB / 56 ô** đã ghi, đọc lại đúng toàn bộ ô. B: **1 dòng Lead / 1 ô** cập nhật thêm theo nguồn mới; **0 dòng PV/OB** bổ sung trong retry. Các số theo lượt, không cộng thành số dòng duy nhất vì một hàng có thể được cập nhật lại.
+- 3 batch nguồn được xác nhận trong attempt 2; cộng với 2 batch attempt 1 là 5 batch. Vùng bảo vệ A/B sau copy khớp, quét native 0 lỗi công thức. Giữ nguyên watermark/last-good nguồn PARTIAL.
+- **0 dòng công/phí** được ghi trên cả hai file; giữ **23 dòng** chưa khớp đầy đủ OB/định danh và **270 fact lịch sử xung đột** mỗi file. Không ghi forecast hoặc thưởng, không đổi NHÁP, phê duyệt hay trạng thái chi.
+- Cả hai target scoped-copy có trạng thái `VERIFIED_VALID_SUBSETS_SOURCE_REVIEW_HELD`. Job exit 0 nói phần hợp lệ đã được xác minh; `GLA_FULL_RELEASE=BLOCKED_SOURCE_REVIEW_REQUIRED` vẫn giữ nguyên.
+- Đối soát source report ở thời điểm **trước copy** của attempt 2 có `COMMON_SCOPE_NATIVE_FACTS_DIFFER`, khi B đã nhận các thay đổi của attempt 1 còn A chưa nhận. Không dùng kết quả đó để kết luận sau copy.
+- Sau copy, đã đọc native độc lập các vùng tính được quản lý, không sửa bộ lọc: **1.381 dòng QL_LEADS**, **282 dòng QL_PV_OB**, và **1.022 giá trị ma trận LEADS_LDPT** khớp giữa A/B. So sánh các dòng có ngày numeric trong 01/09–18/11 ở các vùng đã đọc; đây không phải chứng nhận đủ mọi hồ sơ hoặc toàn workbook. Các alias/hồ sơ nguồn cần đối soát vẫn được giữ.
+- Native `META_RAW` sau retry: **111 dòng trên mỗi file** trong kỳ **11–18/11**, 9 trường dữ liệu khớp A/B và **0 khóa account/date/campaign trùng**. Chứng nhận này chỉ cho cửa sổ cập nhật; không khẳng định toàn năm hoặc tổng tháng đã duyệt bằng snapshot API mới.
+
+Lịch chính tiếp theo được cấu hình bắt đầu **18:00 ngày 18/11/2026**, sau đó 08:00/13:00/18:00 mỗi ngày. GitHub có thể bắt đầu cron trễ; dữ liệu hoàn tất sau thời gian đọc, đối chiếu và readback. Không cần người dùng cung cấp thêm credentials. Để mở FULL còn cần xử lý dữ liệu/định danh đang giữ, đối soát cache/dự báo và một ca nghiệm thu chính sách thưởng đã xác nhận; không được bỏ guard để chuyển thành SUCCESS toàn bộ.
