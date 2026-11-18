@@ -44,7 +44,8 @@
       16,
       17
     ],
-    "title_sha256": "4bd13d38c39de1b07d5775d7e0b9d70d0ca42d35a3e23c12ff6daf4cb685da04"
+    "title_sha256": "4bd13d38c39de1b07d5775d7e0b9d70d0ca42d35a3e23c12ff6daf4cb685da04",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -91,7 +92,8 @@
       16,
       17
     ],
-    "title_sha256": "407e02c27acd5da7c736f08be4f443f79b4f737bffbab59fd71463e3f6af928f"
+    "title_sha256": "407e02c27acd5da7c736f08be4f443f79b4f737bffbab59fd71463e3f6af928f",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -138,7 +140,8 @@
       16,
       17
     ],
-    "title_sha256": "c802f141e0378388f25788ce9bc5b85f9929403c4f6985d6ed1bf73dac508460"
+    "title_sha256": "c802f141e0378388f25788ce9bc5b85f9929403c4f6985d6ed1bf73dac508460",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -185,7 +188,8 @@
       16,
       17
     ],
-    "title_sha256": "ab66b54537d3770d5027b9a24897e6e4b6d9ba9d7643a8e157644d4dd702c451"
+    "title_sha256": "ab66b54537d3770d5027b9a24897e6e4b6d9ba9d7643a8e157644d4dd702c451",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -232,7 +236,8 @@
       16,
       17
     ],
-    "title_sha256": "5814cf08b8d06610da5f2b1d1fcf2ab158640b122d8caa22de26e9ae25424704"
+    "title_sha256": "5814cf08b8d06610da5f2b1d1fcf2ab158640b122d8caa22de26e9ae25424704",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -279,7 +284,8 @@
       16,
       17
     ],
-    "title_sha256": "8b17044e8f999400619434417789b9cdc07ffac5fbb80f7ccbe70b86eee63b31"
+    "title_sha256": "8b17044e8f999400619434417789b9cdc07ffac5fbb80f7ccbe70b86eee63b31",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -326,7 +332,8 @@
       16,
       17
     ],
-    "title_sha256": "66aff17b28fb6b41c4196b7d8245b7b32b00db40b83ac79420237037f8c0be0a"
+    "title_sha256": "66aff17b28fb6b41c4196b7d8245b7b32b00db40b83ac79420237037f8c0be0a",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -373,7 +380,8 @@
       16,
       17
     ],
-    "title_sha256": "194c7b51be7e1000f49529ac5c782f967f99feba60709614be50733bb415c658"
+    "title_sha256": "194c7b51be7e1000f49529ac5c782f967f99feba60709614be50733bb415c658",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -420,7 +428,8 @@
       16,
       17
     ],
-    "title_sha256": "21b036ae787938d1fcd46ce301209d1071460438e0491f500d0b6f2e00deec44"
+    "title_sha256": "21b036ae787938d1fcd46ce301209d1071460438e0491f500d0b6f2e00deec44",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -467,7 +476,8 @@
       16,
       17
     ],
-    "title_sha256": "fe9b6f39483dfd8a14bc03404b40c4de33c0765b0935076e2fb72f3a966169ad"
+    "title_sha256": "fe9b6f39483dfd8a14bc03404b40c4de33c0765b0935076e2fb72f3a966169ad",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -514,7 +524,8 @@
       16,
       17
     ],
-    "title_sha256": "3ed98a1733287017bd3046c489306214e75a25353e746c3ad475fa0218976f13"
+    "title_sha256": "3ed98a1733287017bd3046c489306214e75a25353e746c3ad475fa0218976f13",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -561,7 +572,8 @@
       16,
       17
     ],
-    "title_sha256": "13d5639b0b55dda9f8c034e6b9d85ebbd8ef1e44d67603c94ccb57177511174c"
+    "title_sha256": "13d5639b0b55dda9f8c034e6b9d85ebbd8ef1e44d67603c94ccb57177511174c",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -608,7 +620,8 @@
       16,
       17
     ],
-    "title_sha256": "15fe5674b24664a7b009ae96b61f50b4f95cb96a4e3c3530957fb47de87f08af"
+    "title_sha256": "15fe5674b24664a7b009ae96b61f50b4f95cb96a4e3c3530957fb47de87f08af",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -655,7 +668,8 @@
       16,
       17
     ],
-    "title_sha256": "3eaeaabec8c42e3960222e611cc6310cde6f024d9411261a01aeaac1badcda12"
+    "title_sha256": "3eaeaabec8c42e3960222e611cc6310cde6f024d9411261a01aeaac1badcda12",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -702,7 +716,8 @@
       16,
       17
     ],
-    "title_sha256": "84b7e0dfae7b4395e5d06f90c13a526f1e44b1ca02de3c724a5f4a6b9f89c2f1"
+    "title_sha256": "84b7e0dfae7b4395e5d06f90c13a526f1e44b1ca02de3c724a5f4a6b9f89c2f1",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -749,7 +764,8 @@
       16,
       17
     ],
-    "title_sha256": "6d6110830ad96098d203bd25aa24d63294064e2269b65d1db4731ceebde0fe86"
+    "title_sha256": "6d6110830ad96098d203bd25aa24d63294064e2269b65d1db4731ceebde0fe86",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -796,7 +812,8 @@
       16,
       17
     ],
-    "title_sha256": "a857f73169c22467885796880e3371407224c2b9ec1eb40c795f771727397176"
+    "title_sha256": "a857f73169c22467885796880e3371407224c2b9ec1eb40c795f771727397176",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -821,7 +838,8 @@
       5,
       6
     ],
-    "title_sha256": "4317a99a9ceae2936c786aed194204195bbc99e08d1516034313a02837f68b1b"
+    "title_sha256": "4317a99a9ceae2936c786aed194204195bbc99e08d1516034313a02837f68b1b",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -846,7 +864,8 @@
       5,
       6
     ],
-    "title_sha256": "968fe16996f947c5095c6e51575195017e5ccf6ba0f0fb3cd28278ca5770929e"
+    "title_sha256": "968fe16996f947c5095c6e51575195017e5ccf6ba0f0fb3cd28278ca5770929e",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -874,7 +893,8 @@
       7,
       8
     ],
-    "title_sha256": "9770a24058b547b49bb78c85eaacf2997bac5c118dfd875ab362dc808b7feba7"
+    "title_sha256": "9770a24058b547b49bb78c85eaacf2997bac5c118dfd875ab362dc808b7feba7",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -899,7 +919,8 @@
       5,
       6
     ],
-    "title_sha256": "da43855635841080db4830055b991e849cb02c22bc871d02671159371f20c660"
+    "title_sha256": "da43855635841080db4830055b991e849cb02c22bc871d02671159371f20c660",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -930,7 +951,8 @@
       8,
       9
     ],
-    "title_sha256": "0b18ca4bbff7641a5b83084965145fb6f3c6261325949d8352d583ec98597108"
+    "title_sha256": "0b18ca4bbff7641a5b83084965145fb6f3c6261325949d8352d583ec98597108",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -959,7 +981,8 @@
       8,
       9
     ],
-    "title_sha256": "551efcc5108181ba1ac409d7aa606be77662b9b4a46c2643ffcfdf759dfd83bd"
+    "title_sha256": "551efcc5108181ba1ac409d7aa606be77662b9b4a46c2643ffcfdf759dfd83bd",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -988,7 +1011,8 @@
       7,
       8
     ],
-    "title_sha256": "8405030b5c244a07b92777ea127cedd506a9e96602d7f603d69ab33a8822ae21"
+    "title_sha256": "8405030b5c244a07b92777ea127cedd506a9e96602d7f603d69ab33a8822ae21",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -1017,7 +1041,8 @@
       7,
       8
     ],
-    "title_sha256": "fca62d73a5a1f769a2e2faa8be6af3b3893f44e53cbdd22a23b628b7397d902c"
+    "title_sha256": "fca62d73a5a1f769a2e2faa8be6af3b3893f44e53cbdd22a23b628b7397d902c",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -1045,7 +1070,8 @@
       7,
       8
     ],
-    "title_sha256": "a3cec3fcf87c105984e3a9e3a1af4f2de5812408570c2fe66ced23cd8044b5f8"
+    "title_sha256": "a3cec3fcf87c105984e3a9e3a1af4f2de5812408570c2fe66ced23cd8044b5f8",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -1072,7 +1098,8 @@
       6,
       7
     ],
-    "title_sha256": "9f6b164420b3aac414984348392908324f3fc8dec034c43144bdcc1dc96aae5b"
+    "title_sha256": "9f6b164420b3aac414984348392908324f3fc8dec034c43144bdcc1dc96aae5b",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -1100,7 +1127,8 @@
       7,
       8
     ],
-    "title_sha256": "9d6559264ea5e64197f70d532aa372a205a6cf5d13f089cae423b2af32a6e28d"
+    "title_sha256": "9d6559264ea5e64197f70d532aa372a205a6cf5d13f089cae423b2af32a6e28d",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -1127,7 +1155,8 @@
       6,
       7
     ],
-    "title_sha256": "c12597ca14bcaef88b5e970e35d1aabea52eef4f48fd20e8f277e9235564b4f2"
+    "title_sha256": "c12597ca14bcaef88b5e970e35d1aabea52eef4f48fd20e8f277e9235564b4f2",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -1153,7 +1182,8 @@
       6,
       7
     ],
-    "title_sha256": "faf2ff569954d29f97264c44ff30f824ad2c8fe8727cd6155ba7a826def4ff76"
+    "title_sha256": "faf2ff569954d29f97264c44ff30f824ad2c8fe8727cd6155ba7a826def4ff76",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -1180,7 +1210,8 @@
       6,
       7
     ],
-    "title_sha256": "c46a78be19be2c78f89f02d48ddf200e9e8365bd65a26af679cae488556777f9"
+    "title_sha256": "c46a78be19be2c78f89f02d48ddf200e9e8365bd65a26af679cae488556777f9",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -1207,7 +1238,8 @@
       6,
       7
     ],
-    "title_sha256": "6db7f607832008f77608d8ef94d5f9b352b267547bfc829abb729e238f156949"
+    "title_sha256": "6db7f607832008f77608d8ef94d5f9b352b267547bfc829abb729e238f156949",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -1251,7 +1283,8 @@
       18,
       19
     ],
-    "title_sha256": "9db6bd478874e2deda142d058bd71279dbfeca8936904878a144f5481dcf4537"
+    "title_sha256": "9db6bd478874e2deda142d058bd71279dbfeca8936904878a144f5481dcf4537",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -1298,7 +1331,8 @@
       16,
       17
     ],
-    "title_sha256": "354b34727fec667794b39279431c822ba66b9cc5901ae90112662c2c87ae41b5"
+    "title_sha256": "354b34727fec667794b39279431c822ba66b9cc5901ae90112662c2c87ae41b5",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -1360,7 +1394,8 @@
       7,
       8
     ],
-    "title_sha256": "4f0c748816a2aefcd3f55f0d3e55fe4ccaf16e4684face6878d80c0524280016"
+    "title_sha256": "4f0c748816a2aefcd3f55f0d3e55fe4ccaf16e4684face6878d80c0524280016",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -1388,7 +1423,8 @@
       7,
       8
     ],
-    "title_sha256": "194ab6f5cea7c7bbcd604f29d6b42d268bf8e3b2ae916d9720962dd848ef8c01"
+    "title_sha256": "194ab6f5cea7c7bbcd604f29d6b42d268bf8e3b2ae916d9720962dd848ef8c01",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -1413,7 +1449,8 @@
       5,
       6
     ],
-    "title_sha256": "31231d33ed40e8502fe3b73a1e183c86318c0ce8eb53daebc3fe199354be21c8"
+    "title_sha256": "31231d33ed40e8502fe3b73a1e183c86318c0ce8eb53daebc3fe199354be21c8",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -1434,7 +1471,8 @@
       3,
       4
     ],
-    "title_sha256": "c408fa18075f1658f7234d9c491e19b09b99806218981a1a3de412de5ec946f4"
+    "title_sha256": "c408fa18075f1658f7234d9c491e19b09b99806218981a1a3de412de5ec946f4",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -1459,7 +1497,8 @@
       5,
       6
     ],
-    "title_sha256": "c16c48a43f0a8eec612c7463f1d2424cc3850688b1ca3feedd257dac48868865"
+    "title_sha256": "c16c48a43f0a8eec612c7463f1d2424cc3850688b1ca3feedd257dac48868865",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -1484,7 +1523,8 @@
       5,
       6
     ],
-    "title_sha256": "c461bb533dd7fc83403b12d5a853d4aa4585fcd2f22ee414a64b7cc5ba422393"
+    "title_sha256": "c461bb533dd7fc83403b12d5a853d4aa4585fcd2f22ee414a64b7cc5ba422393",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -1510,7 +1550,8 @@
       6,
       7
     ],
-    "title_sha256": "5093bd5c9496855f47b29e85ac85f2d7fd1a5437e0c4a5e54bab9383cfdb9a37"
+    "title_sha256": "5093bd5c9496855f47b29e85ac85f2d7fd1a5437e0c4a5e54bab9383cfdb9a37",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -1537,7 +1578,8 @@
       7,
       8
     ],
-    "title_sha256": "7be98440598448f4da7a2891aa955db99edc16f228d4e21537ad31dc00b73d1d"
+    "title_sha256": "7be98440598448f4da7a2891aa955db99edc16f228d4e21537ad31dc00b73d1d",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_le",
@@ -1566,7 +1608,8 @@
       7,
       8
     ],
-    "title_sha256": "b855a83a5ee77ab3b527f432d213905228bf2dedc136113018cd438194f54807"
+    "title_sha256": "b855a83a5ee77ab3b527f432d213905228bf2dedc136113018cd438194f54807",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -1613,7 +1656,8 @@
       16,
       17
     ],
-    "title_sha256": "1984e4ad77b4c4c05116bbd4bd64c419c5b0a68da78356b1c26552843340daca"
+    "title_sha256": "1984e4ad77b4c4c05116bbd4bd64c419c5b0a68da78356b1c26552843340daca",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -1660,7 +1704,8 @@
       16,
       17
     ],
-    "title_sha256": "b6e5a63115a2ef6e11310b1ca12dd95286a684c0cb4e3f8a6e819b63f030e0e9"
+    "title_sha256": "b6e5a63115a2ef6e11310b1ca12dd95286a684c0cb4e3f8a6e819b63f030e0e9",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -1707,7 +1752,8 @@
       16,
       17
     ],
-    "title_sha256": "4d189d716f5534d77185f13c049998d50badddf38105dba70e2801d3864dcd6a"
+    "title_sha256": "4d189d716f5534d77185f13c049998d50badddf38105dba70e2801d3864dcd6a",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -1754,7 +1800,8 @@
       16,
       17
     ],
-    "title_sha256": "7d6b53526c47709b2f5a981ae2b64ff1fb3dbfaca6361e1a0a8e6ac2e7ca2439"
+    "title_sha256": "7d6b53526c47709b2f5a981ae2b64ff1fb3dbfaca6361e1a0a8e6ac2e7ca2439",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -1801,7 +1848,8 @@
       16,
       17
     ],
-    "title_sha256": "2ef7d775caeffe649dbf8309a8f73cded4facd144e57b560cdfcc8e2aebfba9d"
+    "title_sha256": "2ef7d775caeffe649dbf8309a8f73cded4facd144e57b560cdfcc8e2aebfba9d",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -1848,7 +1896,8 @@
       16,
       17
     ],
-    "title_sha256": "4bd13d38c39de1b07d5775d7e0b9d70d0ca42d35a3e23c12ff6daf4cb685da04"
+    "title_sha256": "4bd13d38c39de1b07d5775d7e0b9d70d0ca42d35a3e23c12ff6daf4cb685da04",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -1895,7 +1944,8 @@
       16,
       17
     ],
-    "title_sha256": "407e02c27acd5da7c736f08be4f443f79b4f737bffbab59fd71463e3f6af928f"
+    "title_sha256": "407e02c27acd5da7c736f08be4f443f79b4f737bffbab59fd71463e3f6af928f",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -1942,7 +1992,8 @@
       16,
       17
     ],
-    "title_sha256": "c802f141e0378388f25788ce9bc5b85f9929403c4f6985d6ed1bf73dac508460"
+    "title_sha256": "c802f141e0378388f25788ce9bc5b85f9929403c4f6985d6ed1bf73dac508460",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -1989,7 +2040,8 @@
       16,
       17
     ],
-    "title_sha256": "ab66b54537d3770d5027b9a24897e6e4b6d9ba9d7643a8e157644d4dd702c451"
+    "title_sha256": "ab66b54537d3770d5027b9a24897e6e4b6d9ba9d7643a8e157644d4dd702c451",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2036,7 +2088,8 @@
       16,
       17
     ],
-    "title_sha256": "5814cf08b8d06610da5f2b1d1fcf2ab158640b122d8caa22de26e9ae25424704"
+    "title_sha256": "5814cf08b8d06610da5f2b1d1fcf2ab158640b122d8caa22de26e9ae25424704",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2083,7 +2136,8 @@
       16,
       17
     ],
-    "title_sha256": "8b17044e8f999400619434417789b9cdc07ffac5fbb80f7ccbe70b86eee63b31"
+    "title_sha256": "8b17044e8f999400619434417789b9cdc07ffac5fbb80f7ccbe70b86eee63b31",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2130,7 +2184,8 @@
       16,
       17
     ],
-    "title_sha256": "66aff17b28fb6b41c4196b7d8245b7b32b00db40b83ac79420237037f8c0be0a"
+    "title_sha256": "66aff17b28fb6b41c4196b7d8245b7b32b00db40b83ac79420237037f8c0be0a",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2177,7 +2232,8 @@
       16,
       17
     ],
-    "title_sha256": "194c7b51be7e1000f49529ac5c782f967f99feba60709614be50733bb415c658"
+    "title_sha256": "194c7b51be7e1000f49529ac5c782f967f99feba60709614be50733bb415c658",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2224,7 +2280,8 @@
       16,
       17
     ],
-    "title_sha256": "21b036ae787938d1fcd46ce301209d1071460438e0491f500d0b6f2e00deec44"
+    "title_sha256": "21b036ae787938d1fcd46ce301209d1071460438e0491f500d0b6f2e00deec44",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2271,7 +2328,8 @@
       16,
       17
     ],
-    "title_sha256": "fe9b6f39483dfd8a14bc03404b40c4de33c0765b0935076e2fb72f3a966169ad"
+    "title_sha256": "fe9b6f39483dfd8a14bc03404b40c4de33c0765b0935076e2fb72f3a966169ad",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2318,7 +2376,8 @@
       16,
       17
     ],
-    "title_sha256": "3ed98a1733287017bd3046c489306214e75a25353e746c3ad475fa0218976f13"
+    "title_sha256": "3ed98a1733287017bd3046c489306214e75a25353e746c3ad475fa0218976f13",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2365,7 +2424,8 @@
       16,
       17
     ],
-    "title_sha256": "13d5639b0b55dda9f8c034e6b9d85ebbd8ef1e44d67603c94ccb57177511174c"
+    "title_sha256": "13d5639b0b55dda9f8c034e6b9d85ebbd8ef1e44d67603c94ccb57177511174c",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2412,7 +2472,8 @@
       16,
       17
     ],
-    "title_sha256": "15fe5674b24664a7b009ae96b61f50b4f95cb96a4e3c3530957fb47de87f08af"
+    "title_sha256": "15fe5674b24664a7b009ae96b61f50b4f95cb96a4e3c3530957fb47de87f08af",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2459,7 +2520,8 @@
       16,
       17
     ],
-    "title_sha256": "3eaeaabec8c42e3960222e611cc6310cde6f024d9411261a01aeaac1badcda12"
+    "title_sha256": "3eaeaabec8c42e3960222e611cc6310cde6f024d9411261a01aeaac1badcda12",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2506,7 +2568,8 @@
       16,
       17
     ],
-    "title_sha256": "94d6ffb4433bbd16e9eb29881b1b12cec7719c033fb62a44fdcd8c5897b2a47e"
+    "title_sha256": "94d6ffb4433bbd16e9eb29881b1b12cec7719c033fb62a44fdcd8c5897b2a47e",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2553,7 +2616,8 @@
       16,
       17
     ],
-    "title_sha256": "59affcf18d23981b8a8eaf140d634931548a45a9720ad9fed85fd05367702dba"
+    "title_sha256": "59affcf18d23981b8a8eaf140d634931548a45a9720ad9fed85fd05367702dba",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2580,7 +2644,8 @@
       6,
       7
     ],
-    "title_sha256": "088e69d8aeb54cf82c91a733ef1d9e53023ae6d8e7e7e0f45d652954a09c7622"
+    "title_sha256": "088e69d8aeb54cf82c91a733ef1d9e53023ae6d8e7e7e0f45d652954a09c7622",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2627,7 +2692,8 @@
       16,
       17
     ],
-    "title_sha256": "a857f73169c22467885796880e3371407224c2b9ec1eb40c795f771727397176"
+    "title_sha256": "a857f73169c22467885796880e3371407224c2b9ec1eb40c795f771727397176",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2655,7 +2721,8 @@
       7,
       8
     ],
-    "title_sha256": "a3cec3fcf87c105984e3a9e3a1af4f2de5812408570c2fe66ced23cd8044b5f8"
+    "title_sha256": "a3cec3fcf87c105984e3a9e3a1af4f2de5812408570c2fe66ced23cd8044b5f8",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2682,7 +2749,8 @@
       6,
       7
     ],
-    "title_sha256": "9fc849d8a6c57621395f2af65899715b9cd15ebc6279d82a4007baad79ed3f9c"
+    "title_sha256": "9fc849d8a6c57621395f2af65899715b9cd15ebc6279d82a4007baad79ed3f9c",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2710,7 +2778,8 @@
       7,
       8
     ],
-    "title_sha256": "423cd233fedf72db21453e1b4550716d0006e354bf723da7342c649dc05ac7de"
+    "title_sha256": "423cd233fedf72db21453e1b4550716d0006e354bf723da7342c649dc05ac7de",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2736,7 +2805,8 @@
       6,
       7
     ],
-    "title_sha256": "498648e0ee989dc93e552422b98c878f102b03219d619a3c1cd6617f3acb5ee7"
+    "title_sha256": "498648e0ee989dc93e552422b98c878f102b03219d619a3c1cd6617f3acb5ee7",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2763,7 +2833,8 @@
       6,
       7
     ],
-    "title_sha256": "c12597ca14bcaef88b5e970e35d1aabea52eef4f48fd20e8f277e9235564b4f2"
+    "title_sha256": "c12597ca14bcaef88b5e970e35d1aabea52eef4f48fd20e8f277e9235564b4f2",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2794,7 +2865,8 @@
       8,
       9
     ],
-    "title_sha256": "d3663bf2610a44923a99f4a8d1a52fea1d49036b33769e85d16a1d27f6594a7f"
+    "title_sha256": "d3663bf2610a44923a99f4a8d1a52fea1d49036b33769e85d16a1d27f6594a7f",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2827,7 +2899,8 @@
       10,
       11
     ],
-    "title_sha256": "8eb5830e9f0d65fd160a8ada915eea12939fb6e5f2d77df051c946b089013e08"
+    "title_sha256": "8eb5830e9f0d65fd160a8ada915eea12939fb6e5f2d77df051c946b089013e08",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2856,7 +2929,8 @@
       7,
       8
     ],
-    "title_sha256": "0b18ca4bbff7641a5b83084965145fb6f3c6261325949d8352d583ec98597108"
+    "title_sha256": "0b18ca4bbff7641a5b83084965145fb6f3c6261325949d8352d583ec98597108",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2885,7 +2959,8 @@
       8,
       9
     ],
-    "title_sha256": "551efcc5108181ba1ac409d7aa606be77662b9b4a46c2643ffcfdf759dfd83bd"
+    "title_sha256": "551efcc5108181ba1ac409d7aa606be77662b9b4a46c2643ffcfdf759dfd83bd",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2915,7 +2990,8 @@
       8,
       9
     ],
-    "title_sha256": "9eefe88876af5116574a75ef186676b45071531d7c3cd2899a260379ae20c93f"
+    "title_sha256": "9eefe88876af5116574a75ef186676b45071531d7c3cd2899a260379ae20c93f",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2943,7 +3019,8 @@
       7,
       8
     ],
-    "title_sha256": "194ab6f5cea7c7bbcd604f29d6b42d268bf8e3b2ae916d9720962dd848ef8c01"
+    "title_sha256": "194ab6f5cea7c7bbcd604f29d6b42d268bf8e3b2ae916d9720962dd848ef8c01",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -2970,7 +3047,8 @@
       6,
       7
     ],
-    "title_sha256": "6b759f4ee051bbc4aa568011a93cfd2b866ccd1f10894e8fc606ccade3f95b5d"
+    "title_sha256": "6b759f4ee051bbc4aa568011a93cfd2b866ccd1f10894e8fc606ccade3f95b5d",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -3017,7 +3095,8 @@
       16,
       17
     ],
-    "title_sha256": "354b34727fec667794b39279431c822ba66b9cc5901ae90112662c2c87ae41b5"
+    "title_sha256": "354b34727fec667794b39279431c822ba66b9cc5901ae90112662c2c87ae41b5",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -3078,7 +3157,8 @@
       6,
       7
     ],
-    "title_sha256": "5aa8b5132791888297ed8a715e0d7a657a45dc04f79c56efcdceb00d3eec2019"
+    "title_sha256": "5aa8b5132791888297ed8a715e0d7a657a45dc04f79c56efcdceb00d3eec2019",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -3105,7 +3185,8 @@
       7,
       8
     ],
-    "title_sha256": "4f0c748816a2aefcd3f55f0d3e55fe4ccaf16e4684face6878d80c0524280016"
+    "title_sha256": "4f0c748816a2aefcd3f55f0d3e55fe4ccaf16e4684face6878d80c0524280016",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -3134,7 +3215,8 @@
       7,
       8
     ],
-    "title_sha256": "9770a24058b547b49bb78c85eaacf2997bac5c118dfd875ab362dc808b7feba7"
+    "title_sha256": "9770a24058b547b49bb78c85eaacf2997bac5c118dfd875ab362dc808b7feba7",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -3161,7 +3243,8 @@
       6,
       7
     ],
-    "title_sha256": "c461bb533dd7fc83403b12d5a853d4aa4585fcd2f22ee414a64b7cc5ba422393"
+    "title_sha256": "c461bb533dd7fc83403b12d5a853d4aa4585fcd2f22ee414a64b7cc5ba422393",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -3188,7 +3271,8 @@
       6,
       7
     ],
-    "title_sha256": "c16c48a43f0a8eec612c7463f1d2424cc3850688b1ca3feedd257dac48868865"
+    "title_sha256": "c16c48a43f0a8eec612c7463f1d2424cc3850688b1ca3feedd257dac48868865",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -3213,7 +3297,8 @@
       5,
       6
     ],
-    "title_sha256": "b855a83a5ee77ab3b527f432d213905228bf2dedc136113018cd438194f54807"
+    "title_sha256": "b855a83a5ee77ab3b527f432d213905228bf2dedc136113018cd438194f54807",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -3244,7 +3329,8 @@
       8,
       9
     ],
-    "title_sha256": "f088cb01764b5a227745f288b17f0e9674259928df9f9035d00c8f17cd39cab9"
+    "title_sha256": "f088cb01764b5a227745f288b17f0e9674259928df9f9035d00c8f17cd39cab9",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -3272,7 +3358,8 @@
       7,
       8
     ],
-    "title_sha256": "759f1d4adc85d71a11d0d8c178573d3279d25783337e5361dc964eb6df653ee2"
+    "title_sha256": "759f1d4adc85d71a11d0d8c178573d3279d25783337e5361dc964eb6df653ee2",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -3298,7 +3385,8 @@
       6,
       7
     ],
-    "title_sha256": "5093bd5c9496855f47b29e85ac85f2d7fd1a5437e0c4a5e54bab9383cfdb9a37"
+    "title_sha256": "5093bd5c9496855f47b29e85ac85f2d7fd1a5437e0c4a5e54bab9383cfdb9a37",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_thao",
@@ -3325,7 +3413,8 @@
       7,
       8
     ],
-    "title_sha256": "7be98440598448f4da7a2891aa955db99edc16f228d4e21537ad31dc00b73d1d"
+    "title_sha256": "7be98440598448f4da7a2891aa955db99edc16f228d4e21537ad31dc00b73d1d",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_yen",
@@ -3356,7 +3445,8 @@
       8,
       9
     ],
-    "title_sha256": "b81a3d9e4aef766b1c6f0aeb422dd0db039a7dc4cde6200f642171a80778fe69"
+    "title_sha256": "b81a3d9e4aef766b1c6f0aeb422dd0db039a7dc4cde6200f642171a80778fe69",
+    "consumed_all_columns": true
   },
   {
     "source_role": "sale_yen",
@@ -3389,7 +3479,8 @@
       9,
       10
     ],
-    "title_sha256": "79d0dbfccc49c157fbd02da7bb7eaea35874e9affdd79275e796bf9cd59513b5"
+    "title_sha256": "79d0dbfccc49c157fbd02da7bb7eaea35874e9affdd79275e796bf9cd59513b5",
+    "consumed_all_columns": true
   },
   {
     "source_role": "crm",
@@ -5085,5 +5176,1644 @@
       11
     ],
     "title_sha256": "107f65308a971d9ee64cb6439334478ddea71925c9b4a7009e37255822de1d88"
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "ab6a84142982bd68eeacdf5b836d65017cfc82542e6407665430776c11b668e6",
+    "title_sha256": "7e422df1c8b06fba0700af883cf4ee6bbdf525a97080873e904a354c992ccc3b",
+    "header_row": 0,
+    "headers": {
+      "0": "STT\n 序號",
+      "1": "MNV\n 工號",
+      "2": "Họ tên\n 姓名",
+      "3": "Ngày bắt đầu tính phí \n 開始計費日期",
+      "4": "Ngày kết thúc tính phí \n 結束計費日期",
+      "5": "Số ngày chưa vào trong tháng + chưa phí\n 未入職天數",
+      "6": "Số ngày hết hạn tính phí\n 結束計費天數",
+      "7": "Số ngày thôi việc\n 離職天數",
+      "8": "Số ngày làm việc thực tế\n 實際出勤天數",
+      "9": "Số ngày nghỉ lễ\n 節假日天數",
+      "10": "Số ngày công tiêu chuẩn trong tháng\n 標準工作日",
+      "11": "Số giờ tăng ca\n 加班時數",
+      "12": "Tổng số giờ làm việc NCU được hưởng phí\n 出勤總時數",
+      "13": "Phí theo giờ\n 按出勤天數費用",
+      "14": "Bù phí tháng trước\n 上月費用補發",
+      "15": "NCU được hưởng phí\n 供應商應享有總金額",
+      "16": "NCU\n 供應商",
+      "17": "直接間",
+      "18": "Ngày nghỉ việc\n 離職日期",
+      "19": "Ngày phỏng vấn\n 面試日期",
+      "20": "Ghi chú\n 備註"
+    },
+    "parser": "REVIEWED_ATTENDANCE_0",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "ab6a84142982bd68eeacdf5b836d65017cfc82542e6407665430776c11b668e6",
+    "title_sha256": "027e18f7256d90dd19adade4cd7754514e6b8b194574667c7183c44ff60034fd",
+    "header_row": 0,
+    "headers": {
+      "0": "STT\n 序號",
+      "1": "MNV\n 工號",
+      "2": "Họ tên\n 姓名",
+      "3": "Đơn giá tính phí theo ngày công\n 單價/月",
+      "4": "Ngày bắt đầu tính phí \n 開始計費日期",
+      "5": "Ngày kết thúc tính phí \n 結束計費日期",
+      "6": "Số ngày chưa vào trong tháng + chưa phí\n 未入職天數",
+      "7": "Số ngày hết hạn tính phí\n 結束計費天數",
+      "8": "Số ngày thôi việc\n 離職天數",
+      "9": "Số ngày làm việc thực tế\n 實際出勤天數",
+      "10": "Số ngày công hưởng phí bên Fii",
+      "11": "Số ngày công tiêu chuẩn trong tháng\n 標準工作日",
+      "12": "Số giờ tăng ca(FK+Fii)\n 加班時數",
+      "13": "Tổng số giờ làm việc NCU được hưởng phí\n 出勤總時數",
+      "14": "NCU\n 供應商",
+      "15": "MCP\n 費用代碼",
+      "16": "直接間",
+      "17": "Ngày nghỉ việc\n 離職日期",
+      "18": "Ngày phỏng vấn\n 面試日期"
+    },
+    "parser": "REVIEWED_ATTENDANCE_0",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "ab6a84142982bd68eeacdf5b836d65017cfc82542e6407665430776c11b668e6",
+    "title_sha256": "62686f158c050c5d512c427e64e78417f493499fd3d40991b8be079756d98adb",
+    "header_row": 0,
+    "headers": {
+      "0": "STT\n 序號",
+      "1": "MNV\n 工號",
+      "2": "Họ tên\n 姓名",
+      "3": "Đơn giá tính phí theo ngày công\n 單價/月",
+      "4": "Ngày bắt đầu tính phí \n 開始計費日期",
+      "5": "Ngày kết thúc tính phí \n 結束計費日期",
+      "6": "Số ngày chưa vào trong tháng + chưa phí\n 未入職天數",
+      "7": "Số ngày hết hạn tính phí\n 結束計費天數",
+      "8": "Số ngày thôi việc\n 離職天數",
+      "9": "Số ngày làm việc thực tế\n 實際出勤天數",
+      "10": "Số ngày nghỉ lễ\n 節假日天數",
+      "11": "Số ngày công hưởng phí bên Fii",
+      "12": "Số ngày công tiêu chuẩn trong tháng\n 標準工作日",
+      "13": "Số giờ tăng ca(FK+Fii)\n 加班時數",
+      "14": "Tổng số giờ làm việc NCU được hưởng phí\n 出勤總時數",
+      "15": "NCU\n 供應商",
+      "16": "MCP\n 費用代碼",
+      "17": "Ngày nghỉ việc\n 離職日期",
+      "18": "Ngày phỏng vấn\n 面試日期"
+    },
+    "parser": "REVIEWED_ATTENDANCE_0",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "ab6a84142982bd68eeacdf5b836d65017cfc82542e6407665430776c11b668e6",
+    "title_sha256": "5a00afc628c9ed40101e4b2e5d2136e1864c41e39ae33472f87f842db088f373",
+    "header_row": 0,
+    "headers": {
+      "0": "STT\n 序號",
+      "1": "MNV\n 工號",
+      "2": "Họ tên\n 姓名",
+      "3": "Ngày bắt đầu tính phí \n 開始計費日期",
+      "4": "Ngày kết thúc tính phí \n 結束計費日期",
+      "5": "Số ngày chưa vào trong tháng + chưa phí\n 未入職天數",
+      "6": "Số ngày hết hạn tính phí\n 結束計費天數",
+      "7": "Số ngày thôi việc\n 離職天數",
+      "8": "Số ngày làm việc thực tế\n 實際出勤天數",
+      "9": "Số ngày nghỉ lễ\n 節假日天數",
+      "10": "Số ngày công hưởng phí bên Fii",
+      "11": "Số ngày công tiêu chuẩn trong tháng\n 標準工作日",
+      "12": "Số giờ tăng ca\n 加班時數",
+      "13": "Tổng số giờ làm việc NCU được hưởng phí\n 出勤總時數",
+      "14": "NCU\n 供應商",
+      "15": "MCP\n 費用代碼",
+      "16": "Bộ phận\n 部門",
+      "17": "BU\n 單位",
+      "18": "直接間",
+      "19": "Ngày nghỉ việc\n 離職日期",
+      "20": "Ngày phỏng vấn\n 面試日期",
+      "21": "Ghi chú\n 備註"
+    },
+    "parser": "REVIEWED_ATTENDANCE_0",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "ab6a84142982bd68eeacdf5b836d65017cfc82542e6407665430776c11b668e6",
+    "title_sha256": "5df0ec3f89a88790467264281b7e9a01ffe26d26c5151a71d418695e4aa3041e",
+    "header_row": 0,
+    "headers": {
+      "0": "STT\n 序號",
+      "1": "MNV\n 工號",
+      "2": "Họ tên\n 姓名",
+      "3": "Đơn giá tính phí theo ngày công\n 單價/月",
+      "4": "Ngày bắt đầu tính phí \n 開始計費日期",
+      "5": "Ngày kết thúc tính phí \n 結束計費日期",
+      "6": "Số ngày chưa vào trong tháng + chưa phí\n 未入職天數",
+      "7": "Số ngày hết hạn tính phí\n 結束計費天數",
+      "8": "Số ngày thôi việc\n 離職天數",
+      "9": "Số ngày làm việc thực tế\n 實際出勤天數",
+      "10": "Số ngày nghỉ lễ\n 節假日天數",
+      "11": "Số ngày công hưởng phí bên Fii",
+      "12": "Số ngày công tiêu chuẩn trong tháng\n 標準工作日",
+      "13": "Số giờ tăng ca(FK+Fii)\n 加班時數",
+      "14": "Tổng số giờ làm việc NCU được hưởng phí\n 出勤總時數",
+      "15": "NCU\n 供應商",
+      "16": "MCP\n 費用代碼",
+      "17": "Ngày nghỉ việc\n 離職日期",
+      "18": "Ngày phỏng vấn\n 面試日期"
+    },
+    "parser": "REVIEWED_ATTENDANCE_0",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "ab6a84142982bd68eeacdf5b836d65017cfc82542e6407665430776c11b668e6",
+    "title_sha256": "f1be5315c554512ae2bbb6211913fa92f2a4913a24bdde38f3d6bb3754221be8",
+    "header_row": 0,
+    "headers": {
+      "0": "STT\n 序號",
+      "1": "MNV\n 工號",
+      "2": "Họ tên\n 姓名",
+      "3": "Đơn giá tính phí theo ngày công\n 單價/月",
+      "4": "Ngày bắt đầu tính phí \n 開始計費日期",
+      "5": "Ngày kết thúc tính phí \n 結束計費日期",
+      "6": "Số ngày chưa vào trong tháng + chưa phí\n 未入職天數",
+      "7": "Số ngày hết hạn tính phí\n 結束計費天數",
+      "8": "Số ngày thôi việc\n 離職天數",
+      "9": "Số ngày làm việc thực tế\n 實際出勤天數",
+      "10": "Số ngày nghỉ lễ\n 節假日天數",
+      "11": "Số ngày công hưởng phí bên Fii",
+      "12": "Số ngày công tiêu chuẩn trong tháng\n 標準工作日",
+      "13": "Số giờ tăng ca(FK+Fii)\n 加班時數",
+      "14": "Tổng số giờ làm việc NCU được hưởng phí\n 出勤總時數",
+      "15": "NCU\n 供應商",
+      "16": "MCP\n 費用代碼",
+      "17": "Ngày nghỉ việc\n 離職日期",
+      "18": "Ngày phỏng vấn\n 面試日期"
+    },
+    "parser": "REVIEWED_ATTENDANCE_0",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "ab6a84142982bd68eeacdf5b836d65017cfc82542e6407665430776c11b668e6",
+    "title_sha256": "c84ef7502663222f9ae9769ccf0ac3125b3a87ff113b0905cc97eac0590e6afd",
+    "header_row": 0,
+    "headers": {
+      "0": "STT\n 序號",
+      "1": "MNV\n 工號",
+      "2": "Họ tên\n 姓名",
+      "3": "Ngày bắt đầu tính phí \n 開始計費日期",
+      "4": "Ngày kết thúc tính phí \n 結束計費日期",
+      "5": "Số ngày chưa vào trong tháng + chưa phí\n 未入職天數",
+      "6": "Số ngày hết hạn tính phí\n 結束計費天數",
+      "7": "Số ngày thôi việc\n 離職天數",
+      "8": "Số ngày làm việc thực tế\n 實際出勤天數",
+      "9": "Số ngày nghỉ lễ\n 節假日天數",
+      "10": "Số ngày công tiêu chuẩn trong tháng\n 標準工作日",
+      "11": "Số giờ tăng ca\n 加班時數",
+      "12": "Tổng số giờ làm việc NCU được hưởng phí\n 出勤總時數",
+      "13": "Phí theo giờ\n 按出勤天數費用",
+      "14": "Bù phí tháng trước\n 上月費用補發",
+      "15": "NCU được hưởng phí\n 供應商應享有總金額",
+      "16": "NCU\n 供應商",
+      "17": "MCP\n 費用代碼",
+      "18": "Ngày nghỉ việc\n 離職日期",
+      "19": "Ngày phỏng vấn\n 面試日期"
+    },
+    "parser": "REVIEWED_ATTENDANCE_0",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "ab6a84142982bd68eeacdf5b836d65017cfc82542e6407665430776c11b668e6",
+    "title_sha256": "3812a92db93b763ddd4ee1d579b317010c07af2707da4044dc4056554a036f41",
+    "header_row": 0,
+    "headers": {
+      "0": "STT\n 序號",
+      "1": "MNV\n 工號",
+      "2": "Họ tên\n 姓名",
+      "3": "Ngày bắt đầu tính phí \n 開始計費日期",
+      "4": "Ngày kết thúc tính phí \n 結束計費日期",
+      "5": "Số ngày chưa vào trong tháng + chưa phí\n 未入職天數",
+      "6": "Số ngày hết hạn tính phí\n 結束計費天數",
+      "7": "Số ngày thôi việc\n 離職天數",
+      "8": "Số ngày làm việc thực tế\n 實際出勤天數",
+      "9": "Số ngày nghỉ lễ\n 節假日天數",
+      "10": "Số ngày công tiêu chuẩn trong tháng\n 標準工作日",
+      "11": "Số giờ tăng ca\n 加班時數",
+      "12": "Tổng số giờ làm việc NCU được hưởng phí\n 出勤總時數",
+      "13": "Phí theo giờ\n 按出勤天數費用",
+      "14": "Bù phí tháng trước\n 上月費用補發",
+      "15": "NCU được hưởng phí\n 供應商應享有總金額",
+      "16": "NCU\n 供應商",
+      "17": "MCP\n 費用代碼",
+      "18": "Ngày nghỉ việc\n 離職日期",
+      "19": "Ngày phỏng vấn\n 面試日期"
+    },
+    "parser": "REVIEWED_ATTENDANCE_0",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "ab6a84142982bd68eeacdf5b836d65017cfc82542e6407665430776c11b668e6",
+    "title_sha256": "25b5dcfc22d44563cee10001c84cb7abcca7befa2ebd81a5cc6daa5c3c16d139",
+    "header_row": 0,
+    "headers": {
+      "0": "STT\n 序號",
+      "1": "MNV\n 工號",
+      "2": "Họ tên\n 姓名",
+      "3": "Ngày bắt đầu tính phí \n 開始計費日期",
+      "4": "Ngày kết thúc tính phí \n 結束計費日期",
+      "5": "Số ngày chưa vào trong tháng + chưa phí\n 未入職天數",
+      "6": "Số ngày hết hạn tính phí\n 結束計費天數",
+      "7": "Số ngày thôi việc\n 離職天數",
+      "8": "Số ngày làm việc thực tế\n 實際出勤天數",
+      "9": "Số ngày nghỉ lễ\n 節假日天數",
+      "10": "Số ngày công tiêu chuẩn trong tháng\n 標準工作日",
+      "11": "Số giờ tăng ca\n 加班時數",
+      "12": "Tổng số giờ làm việc NCU được hưởng phí\n 出勤總時數",
+      "13": "Phí theo giờ\n 按出勤天數費用",
+      "14": "Bù phí tháng trước\n 上月費用補發",
+      "15": "NCU được hưởng phí\n 供應商應享有總金額",
+      "16": "NCU\n 供應商",
+      "17": "MCP\n 費用代碼",
+      "18": "Ngày nghỉ việc\n 離職日期",
+      "19": "Ngày phỏng vấn\n 面試日期"
+    },
+    "parser": "REVIEWED_ATTENDANCE_0",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "002f9488aabc27f2007404040d4330b363ba046631a5006ec12bf03811cab5db",
+    "title_sha256": "859ead7077c39132ce1950efbf84c48812425a5251b1496ee1943914301f53a4",
+    "header_row": 0,
+    "headers": {
+      "0": "工号",
+      "1": "姓名",
+      "2": "Giới tính",
+      "3": "CCCD",
+      "4": "DoB",
+      "5": "SĐT",
+      "6": "劳务公司",
+      "7": "Ngày vào",
+      "8": "Ngày nghỉ",
+      "9": "FIcode",
+      "10": "部门",
+      "11": "入职",
+      "12": "工龄",
+      "13": "工作时长(202511)",
+      "32": "工作时长(202511)",
+      "62": "前几个月完成了第 6 个工作日",
+      "63": "(d)首次满勤6天",
+      "64": "金额"
+    },
+    "parser": "REVIEWED_ATTENDANCE_1",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      32,
+      62,
+      63,
+      64
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "002f9488aabc27f2007404040d4330b363ba046631a5006ec12bf03811cab5db",
+    "title_sha256": "9132635cef0827d2eb744ec92ff77800d31ad5991cb9e89fed84b41b15f4e446",
+    "header_row": 0,
+    "headers": {
+      "1": "工号",
+      "2": "姓名",
+      "3": "劳务公司",
+      "4": "Ngày vào",
+      "5": "Ngày nghỉ",
+      "6": "FIcode",
+      "7": "部门",
+      "8": "入职",
+      "9": "工龄",
+      "10": "工作时长(202511)",
+      "40": "工作时长(202512)"
+    },
+    "parser": "REVIEWED_ATTENDANCE_1",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      40
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "002f9488aabc27f2007404040d4330b363ba046631a5006ec12bf03811cab5db",
+    "title_sha256": "068cc4f73ac32f56bc777e18b1694839013461314ebeceb49d46418f1c936f5a",
+    "header_row": 2,
+    "headers": {
+      "0": "工号",
+      "1": "姓名",
+      "2": "劳务公司",
+      "3": "Ngày vào",
+      "4": "Ngày nghỉ",
+      "5": "FIcode",
+      "6": "入职",
+      "7": "工龄",
+      "8": "工作时长(202602)",
+      "36": "工作时长(202603)",
+      "67": "(b1)实际出勤天数\n (≥8h)\n 202602",
+      "68": "(b2)上月未计费工作日\n (≥8h)\n 202603",
+      "69": "VEND"
+    },
+    "parser": "REVIEWED_ATTENDANCE_1",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      36,
+      67,
+      68,
+      69
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "002f9488aabc27f2007404040d4330b363ba046631a5006ec12bf03811cab5db",
+    "title_sha256": "ab8cf094ed5da89886f91a4ad3f723a30e32e84983d79a4ee8eaeddd658a406a",
+    "header_row": 2,
+    "headers": {
+      "0": "工号",
+      "1": "姓名",
+      "2": "劳务公司",
+      "3": "Ngày vào",
+      "4": "Ngày nghỉ",
+      "5": "FIcode",
+      "6": "部门",
+      "7": "入职",
+      "8": "工龄",
+      "9": "工作时长(202601)",
+      "40": "工作时长(202602)",
+      "68": "(b1)实际出勤天数\n (≥8h)\n 202601",
+      "69": "(b2)上月未计费工作日\n (≥8h)\n 202602"
+    },
+    "parser": "REVIEWED_ATTENDANCE_1",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      40,
+      68,
+      69
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "002f9488aabc27f2007404040d4330b363ba046631a5006ec12bf03811cab5db",
+    "title_sha256": "6160e3621b2fdec7d937da587b2fdd9788dffd35be530da75e57e3788dce0a46",
+    "header_row": 0,
+    "headers": {
+      "1": "工号",
+      "2": "姓名",
+      "3": "劳务公司",
+      "4": "Ngày vào",
+      "5": "Ngày nghỉ",
+      "6": "FIcode",
+      "7": "部门",
+      "8": "入职",
+      "9": "工龄",
+      "10": "工作时长(202603)",
+      "41": "工作时长(202604)"
+    },
+    "parser": "REVIEWED_ATTENDANCE_1",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      41
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "002f9488aabc27f2007404040d4330b363ba046631a5006ec12bf03811cab5db",
+    "title_sha256": "f24fc2982baeb6c3608485b67d8d23447512427e031475266c27650effc11aae",
+    "header_row": 2,
+    "headers": {
+      "1": "工号",
+      "2": "姓名",
+      "3": "劳务公司",
+      "4": "Ngày vào",
+      "5": "Ngày nghỉ",
+      "6": "FIcode",
+      "7": "部门",
+      "8": "入职",
+      "9": "工龄",
+      "10": "工作时长(202604)",
+      "40": "工作时长(202605)",
+      "71": "(b1)实际出勤天数\n (≥8h)\n 202603",
+      "72": "(b2)上月未计费工作日\n (≥8h)\n 202604",
+      "73": "Tổng"
+    },
+    "parser": "REVIEWED_ATTENDANCE_1",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      40,
+      71,
+      72,
+      73
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "f0327279f00b998710c42f3ae4c7c5250d7b5f70b4a6af17590e0f1885102c37",
+    "title_sha256": "360c3bcda5f64b3e09060e247f25beaaa583d19c4d30f7d5cbd9b8224e4c818a",
+    "header_row": 0,
+    "headers": {
+      "0": "Ngày",
+      "1": "Thứ",
+      "2": "Mã nhân",
+      "3": "Tên",
+      "4": "Có phải ngày làm việc",
+      "5": "Thời gian đi làm",
+      "6": "Thời gian tan ca",
+      "7": "Tên ca",
+      "8": "Thời gian bắt đầu ca",
+      "9": "Thời gian kết thúc ca",
+      "10": "Tổng số giờ làm bao gồm thời gian nghỉ ngơi",
+      "11": "Số giờ đến trễ",
+      "12": "Số giờ về sớm",
+      "13": "Số phút xe đưa rước đến trễ",
+      "14": "Số giờ nghỉ phép/công tác/đào tạo/làm việc tại nước ngoài",
+      "15": "Loại phép",
+      "16": "Số giờ làm thêm",
+      "17": "BUID",
+      "18": "NCC"
+    },
+    "parser": "REVIEWED_ATTENDANCE_2",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "f0327279f00b998710c42f3ae4c7c5250d7b5f70b4a6af17590e0f1885102c37",
+    "title_sha256": "7a1f3b60b4b672a670ce51a84f6755cf288d316d1496fb5268b5df76bbc6bc1f",
+    "header_row": 0,
+    "headers": {
+      "0": "Ngày",
+      "1": "Thứ",
+      "2": "Mã nhân viên",
+      "3": "Tên",
+      "4": "Có phải ngày làm việc",
+      "5": "Work Calendar",
+      "6": "Thời gian đi làm",
+      "7": "Thời gian tan ca",
+      "8": "Tên ca",
+      "9": "Thời gian bắt đầu ca",
+      "10": "Thời gian kết thúc ca",
+      "11": "Tổng số giờ làm bao gồm thời gian nghỉ ngơi",
+      "12": "Số giờ đến trễ",
+      "13": "Số giờ về sớm",
+      "14": "Số phút xe đưa rước đến trễ",
+      "15": "Số giờ nghỉ phép/công tác/đào tạo/làm việc tại nước ngoài",
+      "16": "Loại phép",
+      "17": "Số giờ làm thêm",
+      "18": "Mã bộ phận",
+      "19": "NCC"
+    },
+    "parser": "REVIEWED_ATTENDANCE_2",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "f0327279f00b998710c42f3ae4c7c5250d7b5f70b4a6af17590e0f1885102c37",
+    "title_sha256": "3841b50ff5d9c1478b8671f1398116e4b099db7c15901e62c96fbd2dc3dfac2b",
+    "header_row": 0,
+    "headers": {
+      "0": "Ngày",
+      "1": "Thứ",
+      "2": "Mã nhân",
+      "3": "Nguồn",
+      "4": "Tên",
+      "5": "Có phải ngày làm việc",
+      "6": "Thời gian đi làm",
+      "7": "Thời gian tan ca",
+      "8": "Tổng số giờ làm bao gồm thời gian nghỉ ngơi",
+      "9": "Số giờ đến trễ",
+      "10": "Số giờ về sớm",
+      "11": "Số phút xe đưa rước đến trễ",
+      "12": "Số giờ nghỉ phép/công tác/đào tạo/làm việc tại nước ngoài",
+      "13": "Loại phép",
+      "14": "Số giờ làm thêm",
+      "15": "Mã bộ phận",
+      "16": "NCC"
+    },
+    "parser": "REVIEWED_ATTENDANCE_2",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "f0327279f00b998710c42f3ae4c7c5250d7b5f70b4a6af17590e0f1885102c37",
+    "title_sha256": "b274871dd3c7714b0370dbc60462b1901c4f858d7a840be23b6462aa35dc1ca5",
+    "header_row": 0,
+    "headers": {
+      "0": "Ngày",
+      "1": "Thứ",
+      "2": "Mã nhân",
+      "3": "Tên",
+      "4": "Có phải ngày làm việc",
+      "5": "Thời gian đi làm",
+      "6": "Thời gian tan ca",
+      "7": "Tên ca",
+      "8": "Thời gian bắt đầu ca",
+      "9": "Thời gian kết thúc ca",
+      "10": "Tổng số giờ làm bao gồm thời gian nghỉ ngơi",
+      "11": "Số giờ đến trễ",
+      "12": "Số giờ về sớm",
+      "13": "Số phút xe đưa rước đến trễ",
+      "14": "Số giờ nghỉ phép/công tác/đào tạo/làm việc tại nước ngoài",
+      "15": "Loại phép",
+      "16": "Số giờ làm thêm",
+      "17": "Mã bộ phận",
+      "18": "NCC"
+    },
+    "parser": "REVIEWED_ATTENDANCE_2",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "f0327279f00b998710c42f3ae4c7c5250d7b5f70b4a6af17590e0f1885102c37",
+    "title_sha256": "5701d78f57f032b19c4b606f5fb88be5d1f29ae7fc45f82113387187f64a4120",
+    "header_row": 0,
+    "headers": {
+      "1": "Ngày",
+      "2": "Thứ",
+      "3": "Mã nhân",
+      "4": "TÊN NHÂN VIÊN",
+      "5": "Loại nhân viên",
+      "6": "Có phải ngày làm việc",
+      "7": "Giờ - Ngày",
+      "8": "Giờ - Giờ",
+      "9": "Số giờ nghỉ phép/công tác/đào tạo/làm việc tại nước ngoài",
+      "10": "Số giờ làm thêm",
+      "11": "Ngày công",
+      "12": "Giờ công",
+      "13": "Loại phép",
+      "14": "Work Calendar",
+      "15": "Chi tiết giờ làm không đủ",
+      "16": "Thời gian đi làm",
+      "17": "Thời gian tan ca",
+      "18": "Tên ca",
+      "19": "Thời gian bắt đầu ca",
+      "20": "Thời gian kết thúc ca",
+      "21": "Tổng số giờ làm bao gồm thời gian nghỉ ngơi",
+      "22": "Số giờ đến trễ",
+      "23": "Số giờ về sớm",
+      "24": "Số phút xe đưa rước đến trễ",
+      "25": "Mã bộ phận",
+      "26": "NCC"
+    },
+    "parser": "REVIEWED_ATTENDANCE_2",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "f0327279f00b998710c42f3ae4c7c5250d7b5f70b4a6af17590e0f1885102c37",
+    "title_sha256": "92d1e46ba9284526d5b80ff07ce53754ff7c2ddf6d5209415844260f4d1672b4",
+    "header_row": 0,
+    "headers": {
+      "1": "Ngày",
+      "2": "Thứ",
+      "3": "Mã nhân",
+      "5": "Nhà cung cấp",
+      "6": "Có phải ngày làm việc",
+      "7": "Giờ - Ngày",
+      "8": "Giờ - Giờ",
+      "9": "Số giờ nghỉ phép/công tác/đào tạo/làm việc tại nước ngoài",
+      "10": "Số giờ làm thêm",
+      "11": "Ngày công",
+      "12": "Giờ công",
+      "13": "Loại phép",
+      "14": "Work Calendar",
+      "15": "Chi tiết giờ làm không đủ",
+      "16": "Thời gian đi làm",
+      "17": "Thời gian tan ca",
+      "18": "Tên ca",
+      "19": "Thời gian bắt đầu ca",
+      "20": "Thời gian kết thúc ca",
+      "21": "Tổng số giờ làm bao gồm thời gian nghỉ ngơi",
+      "22": "Số giờ đến trễ",
+      "23": "Số giờ về sớm",
+      "24": "Số phút xe đưa rước đến trễ",
+      "25": "BUID",
+      "26": "Mã bộ phận",
+      "27": "Tên bộ phận"
+    },
+    "parser": "REVIEWED_ATTENDANCE_2",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      1,
+      2,
+      3,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "cc7339b8f17de4bb408908c9935c957775d0689af7abca1cd81621ebbde25e5e",
+    "title_sha256": "a3ad18892400512f00c1233d21a0cf94bfadbce027e444d55731b7a17e070fd5",
+    "header_row": 0,
+    "headers": {
+      "0": "Stt",
+      "1": "Công ty",
+      "2": "MNV",
+      "3": "Họ và tên",
+      "4": "Mã bộ phận",
+      "5": "Ngày đi làm",
+      "6": "Ngày nghỉ việc",
+      "7": "Số giờ làm việc"
+    },
+    "parser": "REVIEWED_ATTENDANCE_3",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "cc7339b8f17de4bb408908c9935c957775d0689af7abca1cd81621ebbde25e5e",
+    "title_sha256": "c327c06c3290b4db0d03b1988ee519f3ee989d04550cec046ddeb0fe841081a7",
+    "header_row": 0,
+    "headers": {
+      "0": "Stt",
+      "1": "Công ty",
+      "2": "MNV",
+      "3": "Họ và tên",
+      "4": "Mã bộ phận",
+      "5": "Ngày đi làm",
+      "6": "Ngày nghỉ việc",
+      "7": "Số giờ làm việc"
+    },
+    "parser": "REVIEWED_ATTENDANCE_3",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "cc7339b8f17de4bb408908c9935c957775d0689af7abca1cd81621ebbde25e5e",
+    "title_sha256": "f151b3c59f1cce55773ef24a7a90f4c4ea86c32eaf67a9f4b69b11447b5efa06",
+    "header_row": 2,
+    "headers": {
+      "0": "Stt",
+      "1": "Công ty",
+      "2": "MNV",
+      "3": "Họ và tên",
+      "4": "Mã bộ phận",
+      "5": "Ngày đi làm",
+      "6": "Ngày nghỉ việc",
+      "7": "Số giờ làm việc",
+      "8": "nt"
+    },
+    "parser": "REVIEWED_ATTENDANCE_3",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "cc7339b8f17de4bb408908c9935c957775d0689af7abca1cd81621ebbde25e5e",
+    "title_sha256": "15e6f15f94130bbc81309652aef49f17a942c61c216e66c6ff52ec64b70f76c0",
+    "header_row": 2,
+    "headers": {
+      "0": "Stt",
+      "1": "Công ty",
+      "2": "MNV",
+      "3": "Họ và tên",
+      "4": "Mã bộ phận",
+      "5": "Ngày đi làm",
+      "6": "Ngày nghỉ việc ",
+      "7": "Số giờ làm việc thực tế",
+      "8": "nt"
+    },
+    "parser": "REVIEWED_ATTENDANCE_3",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "cc7339b8f17de4bb408908c9935c957775d0689af7abca1cd81621ebbde25e5e",
+    "title_sha256": "92d1e46ba9284526d5b80ff07ce53754ff7c2ddf6d5209415844260f4d1672b4",
+    "header_row": 2,
+    "headers": {
+      "0": "Stt",
+      "1": "Công ty",
+      "2": "MNV",
+      "3": "Họ và tên",
+      "4": "Mã bộ phận",
+      "5": "Ngày đi làm",
+      "6": "Ngày nghỉ việc",
+      "7": "Số giờ làm việc thực tế"
+    },
+    "parser": "REVIEWED_ATTENDANCE_3",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "33478df32331962615d9a19c2674a507abe8fe7ce39727aecebed8536524c15a",
+    "title_sha256": "b4eccf79ee64fc0b5d4c9468ad850352b8816befdec1b81282671919948d83b8",
+    "header_row": 0,
+    "headers": {
+      "0": "No",
+      "1": "ID",
+      "2": "Name",
+      "3": "vendor",
+      "4": "onboard date",
+      "5": "Date end",
+      "6": "check day",
+      "7": "work day",
+      "8": "4/22/2026",
+      "9": "4/23/2026",
+      "10": "4/24/2026",
+      "11": "4/25/2026",
+      "12": "4/26/2026",
+      "13": "4/27/2026",
+      "14": "4/28/2026",
+      "15": "4/29/2026",
+      "16": "4/30/2026",
+      "29": "5/13/2026",
+      "30": "5/14/2026",
+      "31": "5/15/2026",
+      "32": "5/16/2026",
+      "33": "5/17/2026",
+      "34": "5/18/2026",
+      "35": "5/19/2026",
+      "36": "5/20/2026",
+      "37": "5/21/2026",
+      "38": "5/22/2026",
+      "39": "5/23/2026",
+      "40": "5/24/2026",
+      "41": "5/25/2026",
+      "42": "5/26/2026",
+      "43": "5/27/2026",
+      "44": "5/28/2026",
+      "45": "5/29/2026",
+      "46": "5/30/2026",
+      "47": "5/31/2026",
+      "48": "Grand Total"
+    },
+    "parser": "REVIEWED_ATTENDANCE_4",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "33478df32331962615d9a19c2674a507abe8fe7ce39727aecebed8536524c15a",
+    "title_sha256": "3755d78e471d15151a18afd08da636beea21f463f7d4aa5f6b1c277c8202bf74",
+    "header_row": 0,
+    "headers": {
+      "0": "No",
+      "1": "ID",
+      "2": "Name",
+      "3": "vendor",
+      "4": "onboard date",
+      "5": "Date end",
+      "6": "check day",
+      "7": "work day",
+      "20": "6/13/2026",
+      "21": "6/14/2026",
+      "22": "6/15/2026",
+      "23": "6/16/2026",
+      "24": "6/17/2026",
+      "25": "6/18/2026",
+      "26": "6/19/2026",
+      "27": "6/20/2026",
+      "28": "6/21/2026",
+      "29": "6/22/2026",
+      "30": "6/23/2026",
+      "31": "6/24/2026",
+      "32": "6/25/2026",
+      "33": "6/26/2026",
+      "34": "6/27/2026",
+      "35": "6/28/2026",
+      "36": "6/29/2026",
+      "37": "6/30/2026",
+      "38": "Grand Total"
+    },
+    "parser": "REVIEWED_ATTENDANCE_4",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "33478df32331962615d9a19c2674a507abe8fe7ce39727aecebed8536524c15a",
+    "title_sha256": "c327c06c3290b4db0d03b1988ee519f3ee989d04550cec046ddeb0fe841081a7",
+    "header_row": 0,
+    "headers": {
+      "0": "No",
+      "1": "ID",
+      "2": "Name",
+      "3": "vendor",
+      "4": "onboard date",
+      "5": "Date end",
+      "6": "check day",
+      "7": "work day",
+      "39": "Grand Total"
+    },
+    "parser": "REVIEWED_ATTENDANCE_4",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      39
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "33478df32331962615d9a19c2674a507abe8fe7ce39727aecebed8536524c15a",
+    "title_sha256": "f151b3c59f1cce55773ef24a7a90f4c4ea86c32eaf67a9f4b69b11447b5efa06",
+    "header_row": 0,
+    "headers": {
+      "0": "No",
+      "1": "ID",
+      "2": "Name",
+      "3": "vendor",
+      "4": "onboard date",
+      "5": "Date end",
+      "6": "check day",
+      "7": "work day",
+      "20": "8/13/2026",
+      "21": "8/14/2026",
+      "22": "8/15/2026",
+      "23": "8/16/2026",
+      "24": "8/17/2026",
+      "25": "8/18/2026",
+      "26": "8/19/2026",
+      "27": "8/20/2026",
+      "28": "8/21/2026",
+      "29": "8/22/2026",
+      "30": "8/23/2026",
+      "31": "8/24/2026",
+      "32": "8/25/2026",
+      "33": "8/26/2026",
+      "34": "8/27/2026",
+      "35": "8/28/2026",
+      "36": "8/29/2026",
+      "37": "8/30/2026",
+      "38": "8/31/2026",
+      "39": "Grand Total"
+    },
+    "parser": "REVIEWED_ATTENDANCE_4",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "33478df32331962615d9a19c2674a507abe8fe7ce39727aecebed8536524c15a",
+    "title_sha256": "15e6f15f94130bbc81309652aef49f17a942c61c216e66c6ff52ec64b70f76c0",
+    "header_row": 0,
+    "headers": {
+      "0": "No",
+      "1": "ID",
+      "2": "Name",
+      "3": "vendor",
+      "4": "onboard date",
+      "5": "Date end",
+      "6": "check day",
+      "7": "work day",
+      "20": "9/13/2026",
+      "21": "9/14/2026",
+      "22": "9/15/2026",
+      "23": "9/16/2026",
+      "24": "9/17/2026",
+      "25": "9/18/2026",
+      "26": "9/19/2026",
+      "27": "9/20/2026",
+      "28": "9/21/2026",
+      "29": "9/22/2026",
+      "30": "9/23/2026",
+      "31": "9/24/2026",
+      "32": "9/25/2026",
+      "33": "9/26/2026",
+      "34": "9/27/2026",
+      "35": "9/28/2026",
+      "36": "9/29/2026",
+      "37": "9/30/2026",
+      "38": "Grand Total"
+    },
+    "parser": "REVIEWED_ATTENDANCE_4",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "33478df32331962615d9a19c2674a507abe8fe7ce39727aecebed8536524c15a",
+    "title_sha256": "92d1e46ba9284526d5b80ff07ce53754ff7c2ddf6d5209415844260f4d1672b4",
+    "header_row": 0,
+    "headers": {
+      "0": "No",
+      "1": "ID",
+      "2": "Name",
+      "3": "vendor",
+      "4": "onboard date",
+      "5": "Date end",
+      "6": "check day",
+      "7": "work day",
+      "20": "10/13/2026",
+      "21": "10/14/2026",
+      "22": "10/15/2026",
+      "23": "10/16/2026",
+      "24": "10/17/2026",
+      "25": "10/18/2026",
+      "26": "10/19/2026",
+      "27": "10/20/2026",
+      "28": "10/21/2026",
+      "29": "10/22/2026",
+      "30": "10/23/2026",
+      "31": "10/24/2026",
+      "32": "10/25/2026",
+      "33": "10/26/2026",
+      "34": "10/27/2026",
+      "35": "10/28/2026",
+      "36": "10/29/2026",
+      "37": "10/30/2026",
+      "38": "10/31/2026",
+      "39": "Grand Total"
+    },
+    "parser": "REVIEWED_ATTENDANCE_4",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "c4dc19a0738bd0e157e9711cac49e4f540ee3725e3a45f95c46be6bea688e7ed",
+    "title_sha256": "78d23a006a7f7e2357697c8f55b26d0b8cf529b7d2e702f36ef579eddabc1c74",
+    "header_row": 2,
+    "headers": {
+      "0": "ID",
+      "1": "Name",
+      "2": "Gender",
+      "3": "DOB",
+      "4": "Phone",
+      "5": "Join Date",
+      "6": "TỔNG SỐ GIỜ",
+      "7": "PIC",
+      "8": "Tên PIC"
+    },
+    "parser": "REVIEWED_ATTENDANCE_5",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "source_role": "attendance",
+    "file_sha256": "002f9488aabc27f2007404040d4330b363ba046631a5006ec12bf03811cab5db",
+    "title_sha256": "c7b202cdd32d77bebd0eb255ff4cdb5b5f8d0e907e63d95126d63177635ba87f",
+    "header_row": 0,
+    "headers": {
+      "3": "Ngày vào",
+      "8": 20251201,
+      "39": 20260101,
+      "69": 20260131
+    },
+    "parser": "QUANTA_REVIEWED_JANUARY_FIXED_IDENTITY_MATRIX",
+    "state": "PARSED",
+    "consumed_all_columns": true,
+    "consumed_columns": [
+      0,
+      1,
+      3,
+      4,
+      8,
+      39,
+      69
+    ]
   }
 ]

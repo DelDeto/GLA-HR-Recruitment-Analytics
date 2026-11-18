@@ -22,7 +22,9 @@ def test_first_install_can_never_authorize_production_or_infer_ownership():
         {'A':empty,'B':empty},{},{},[],'2026-11-18')
     assert config['deployment_approved']is False
     assert config['single_writer_private_volume']is False
-    assert all(t['ownership']['forecast']==[]for t in config['targets'].values())
+    for target in config['targets'].values():
+        assert [7002,1003,1200,5,10]not in target['ownership']['forecast']
+    assert [7950,2,51,48,56]not in config['targets']['A']['ownership']['forecast']
     assert set(config['adapters'])==set(deploy.BRANCHES)
 
 
@@ -47,3 +49,14 @@ def test_preloaded_snapshots_are_used_once_then_live_readback():
     transport=deploy.InitialSnapshots(Transport(),{'A':{'id':'a'}})
     assert transport.snapshot('a')=={'id':'a'}
     assert transport.snapshot('a')=='live'
+
+
+def test_sales_group_detection_consumes_error_only_trailing_columns():
+    title='Reviewed';sha=hashlib.sha256(title.encode()).hexdigest()
+    tab={'id':1,'name':title,'rows':[[0,[[0,'Date'],[1,'Name']]]],
+         'formula_errors':[{'row':1,'column':7,'type':'REF'}]}
+    spec={'state':'PARSED','parser':'SALE_LE','header_row':0,
+          'headers':{'0':'Date','1':'Name'},'consumed_all_columns':True}
+    options={'reviewed_title_contracts':{'source':{'by_title_hash':{sha:spec}}}}
+    contract=resolve_contracts({'file_id':'source','tabs':[tab]},options)['1']
+    assert contract['consumed_columns']==list(range(8))

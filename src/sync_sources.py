@@ -79,25 +79,37 @@ class GoogleTransport:
 
     def snapshot(self, spreadsheet_id):
         meta = self.json('GET', SHEETS + spreadsheet_id, params={'fields': 'spreadsheetId,sheets.properties'})
-        cells = {}
-        # Bounded field-only native reads also inspect every effective formula error.
+        cells = {}; ranges = []; budget = 0
+        def collect():
+            if not ranges: return
+            block = self.json('GET', SHEETS + spreadsheet_id, params={
+                'ranges': list(ranges), 'includeGridData': 'true',
+                'fields': 'sheets(properties(sheetId),data(startRow,startColumn,rowData(values(userEnteredValue,effectiveValue,note))))'})
+            known = {s['properties']['sheetId'] for s in meta['sheets']}
+            for sheet in block.get('sheets', []):
+                sid = sheet.get('properties', {}).get('sheetId')
+                if sid not in known: raise SyncBlocked('NATIVE_SNAPSHOT_SHEET_ID_UNVERIFIED')
+                for data in sheet.get('data', []):
+                    for i, row in enumerate(data.get('rowData', [])):
+                        for j, cell in enumerate(row.get('values', [])):
+                            if cell:
+                                key = f"{sid}:{data.get('startRow',0)+i}:{data.get('startColumn',0)+j}"
+                                cells[key] = cell
+        # Every native range remains <=50,000 cells. Group up to 200,000
+        # requested cells per call to avoid one quota-consuming call per tab.
+        # All effective errors, hidden tabs and authored values are retained.
         for sh in meta['sheets']:
             p = sh['properties']; grid = p['gridProperties']; title = p['title'].replace("'", "''")
             width = grid['columnCount']; step = max(1, 50000 // width)
             for start in range(0, grid['rowCount'], step):
                 from openpyxl.utils import get_column_letter
                 end = min(start + step, grid['rowCount'])
-                block = self.json('GET', SHEETS + spreadsheet_id, params={
-                    'ranges': f"'{title}'!A{start+1}:{get_column_letter(width)}{end}",
-                    'includeGridData': 'true',
-                    'fields': 'sheets(data(startRow,startColumn,rowData(values(userEnteredValue,effectiveValue,note))))'})
-                for sheet in block.get('sheets', []):
-                    for data in sheet.get('data', []):
-                        for i, row in enumerate(data.get('rowData', [])):
-                            for j, cell in enumerate(row.get('values', [])):
-                                if cell:
-                                    key = f"{p['sheetId']}:{data.get('startRow',0)+i}:{data.get('startColumn',0)+j}"
-                                    cells[key] = cell
+                size = (end-start)*width
+                if ranges and (budget+size>200000 or len(ranges)>=8):
+                    collect(); ranges=[]; budget=0
+                ranges.append(f"'{title}'!A{start+1}:{get_column_letter(width)}{end}")
+                budget += size
+        collect()
         return {'id': spreadsheet_id, 'sheets': [s['properties'] for s in meta['sheets']], 'cells': cells}
 
     def write(self, spreadsheet_id, requests):

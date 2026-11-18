@@ -77,9 +77,19 @@ def resolve_contracts(source,options):
         import hashlib
         reviewed=options.get('reviewed_title_contracts',{}).get(source['file_id'],{}).get('by_title_hash',{})
         pinned=reviewed.get(hashlib.sha256(tab.get('name','').encode()).hexdigest())
+        if pinned is None:
+            file_hash=hashlib.sha256(source['file_id'].encode()).hexdigest()
+            title_hash=hashlib.sha256(tab.get('name','').encode()).hexdigest()
+            matches=[s for s in options.get('reviewed_attendance_contracts',[])
+                     if s.get('file_sha256')==file_hash and s.get('title_sha256')==title_hash]
+            if len(matches)==1:pinned=matches[0]
         if pinned:
             # Header validation and consumer SHA proof still run downstream.
             result[str(tab['id'])]=dict(pinned)
+            if result[str(tab['id'])].pop('consumed_all_columns',False):
+                columns=[int(c)for r,cs in tab['rows']for c,x in cs]
+                columns += [e['column']for e in tab.get('formula_errors',[])]
+                result[str(tab['id'])]['consumed_columns']=list(range(max(columns,default=-1)+1))
             continue
         matches=[]
         for template in options.get('schema_templates',[]):

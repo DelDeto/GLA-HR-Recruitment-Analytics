@@ -75,6 +75,7 @@ def manifest(resources, before, programs, adapter, registry, as_of):
     source_roles = {k: x for k, x in resources.items() if k not in ('A', 'B', 'folder')}
     options = {'version': 'v2.4-first-install', 'programs': programs,
                'source_roles': source_roles, 'reviewed_title_contracts': schema_contracts(resources, programs, registry),
+               'reviewed_attendance_contracts': [s for s in registry if s['source_role']=='attendance'],
                'legacy_intake_confirmed': True, 'legacy_default_group': 'LĐPT',
                'fee_hour_adjustments': []}
     for row in (230, 231):
@@ -92,14 +93,15 @@ def manifest(resources, before, programs, adapter, registry, as_of):
         'lead': [[6203,3,1000,0,11],[6203,3,1000,12,16],[7500,3,1999,0,6],[7600,3,1999,0,6]],
         'pv_ob': [[7501,3,999,0,8],[7601,3,1499,0,8],[7305,3,2000,0,9]],
         'attendance': [[7851,3,20000,0,24],[7852,3,2000,0,25]],
-        # Forecast ownership must be separately grounded against the installed
-        # A/B layouts. Empty ownership cannot silently approve an inferred map.
-        'forecast': [], 'bonus': [], 'meta': [],
+        'forecast': [[7950,0,2000,0,38],[7503,3,2000,6,7],[7503,3,2000,23,24],
+                     [7002,1003,1200,0,5],[7002,1003,1200,10,12]],
+        'bonus': [], 'meta': [],
     }
     targets = {role: {'id': resources[role], 'role': name, 'ownership': deepcopy(ownership)}
                for role, name in [('A','MASTER_V23'),('B','SEPTEMBER_V22')]}
     targets['A']['ownership']['bonus'] = [[7908,2000,5000,0,22]]
     targets['B']['ownership']['bonus'] = [[7401,3,3000,0,14],[7401,3,3000,18,20]]
+    targets['B']['ownership']['forecast'].append([7950,2,51,48,56])
     end = min([as_of] + [iso(v(s,7000,5,4)) for s in before.values() if v(s,7000,5,4)])
     scope = {'from': '2026-09-01', 'to': end, 'group': 'LĐPT', 'factory': 'Tất cả'}
     return {'as_of': as_of, 'targets': targets, 'source_files': list(source_roles.values()),
@@ -129,8 +131,10 @@ def run(state):
     transport = forbid_writes(GoogleTransport.from_env(state))
     resources = read_hints(transport, os.getenv('GOOGLE_SHEET_ID',''))
     if set(resources) != set(RESOURCE_HASHES): raise SyncBlocked('DEPLOYMENT_RESOURCE_DISCOVERY_INCOMPLETE')
+    print('V24_PHASE=INITIAL_NATIVE_TARGET_READS',flush=True)
     before = {n: transport.snapshot(resources[n]) for n in ('A','B')}
     programs = install_programs(before['A'], state)
+    print('V24_PHASE=PINNED_PROGRAMS_VERIFIED PROGRAMS=6',flush=True)
     bundle = PrivateState(state.root / 'adapter')
     bundle.save_blob('entry.py', b'from src.sync_business import main\nraise SystemExit(main())\n')
     # Public reviewed code is copied into this pinned isolated bundle. Business
@@ -148,15 +152,25 @@ def run(state):
     as_of = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).date().isoformat()
     config = manifest(resources, before, programs, adapter, registry, as_of)
     state.save('production-manifest.json', config)
+    print('V24_PHASE=FRESH_META_CAPTURE',flush=True)
     config = stage_meta_snapshot(config, state)
     transport = InitialSnapshots(transport, before)
+    print('V24_PHASE=SOURCE_COLLECTION_AND_SIX_BRANCH_PLANNING',flush=True)
     run_id, stage = stage_run(config, transport, state)
+    print('V24_PHASE=NATIVE_READBACK_AND_CROSS_FILE_AUDIT',flush=True)
     report = execute_stage(run_id, stage, transport, state, apply=False)
     report.update(production_writes=0, release_state='BLOCKED',
                   runtime_setup={'programs':len(programs),'reviewed_tab_contracts':len(registry),
                                  'persistent_writer_installed':False})
     report['source_scan'] = {k: stage['sources'][k] for k in ('listed_files','parsed_files','listed_tabs','transport_scan_complete')}
     report['source_formula_errors'] = sum(len(t.get('formula_errors',[])) for s in stage['sources']['sources'] for t in s['tabs'])
+    meta_spec = config['adapters']['meta']['options'].get('meta_snapshot')
+    if meta_spec:
+        captured = json.loads(Path(meta_spec['path']).read_text())
+        report['meta_capture'] = {'state':captured['validation'], 'accounts':len(captured['accounts']),
+                                  'rows':len(captured['rows']), 'to':captured['to']}
+    else:
+        report['meta_capture'] = {'state':'BLOCKED','reason':'FRESH_META_CAPTURE_NOT_AVAILABLE'}
     state.save('installation-dry-run-report.json', report)
     return report
 
@@ -167,10 +181,21 @@ def main():
         with tempfile.TemporaryDirectory(prefix='gla-v24-private-') as folder:
             report = run(PrivateState(folder))
             print(json.dumps(report, ensure_ascii=False))
+            # Flat allowlisted telemetry stays readable even when GitHub masks
+            # braces contained in the configured service-account JSON secret.
+            print('V24_PRODUCTION_WRITES=0')
+            for name,target in report['targets'].items():
+                print('V24_TARGET '+name+' '+target['state'])
+                for branch,status in target.get('branches',{}).items():
+                    print('V24_BRANCH '+name+' '+branch+' '+status)
+                for branch,plan in report.get('validated_subsets',{}).get(name,{}).items():
+                    print('V24_PLAN '+name+' '+branch+' ROWS='+str(plan['changed_rows'])+
+                          ' CELLS='+str(plan['changed_cells'])+' HASH='+plan['plan_hash'])
         return 0 if all(t['state']=='DRY_RUN_READY' for t in report['targets'].values()) else 2
     except Exception as exc:
         print(json.dumps({'state':'BLOCKED','production_writes':0,
-            'reason':str(exc) if isinstance(exc,SyncBlocked) else 'PRIVATE_DEPLOYMENT_DRY_RUN_FAILED'}))
+            'reason':str(exc) if isinstance(exc,SyncBlocked) else 'PRIVATE_DEPLOYMENT_DRY_RUN_FAILED',
+            'error_type':type(exc).__name__}))
         return 2
 
 
