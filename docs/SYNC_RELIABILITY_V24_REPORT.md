@@ -59,3 +59,16 @@ Cần gắn vào phiên làm việc **runtime private đã giữ bundle V2.4 và
 Trong runtime đó, xác minh SHA theo mã PR đang chọn, cập nhật `as_of` đúng ngày Việt Nam, giữ `deployment_approved=false`, chạy launcher chỉ đọc hiện có. FULL DRY RUN cần đọc lại nguồn và A/B, chụp Meta trong cùng lần chạy, phân loại lỗi theo trường thực tế tiêu thụ, xuất kế hoạch/hash từng nhánh và file, kiểm tra vùng bảo vệ, so sánh cùng kỳ/nhóm và giữ last-good. Chưa có kết quả này thì không đề nghị ghi production.
 
 Khi nghiệm thu đủ và được duyệt ghi riêng, dùng lại lịch hiện có; mọi thay đổi writer Meta phải đi kèm kiểm kê vùng sở hữu và chống chạy đồng thời. Không bật lịch chỉ để thử credentials. Giữ nguyên chính sách NHÁP, phí/override đã duyệt và dữ liệu lịch sử trong thời gian chờ.
+
+
+### Kiểm chứng credentials trực tiếp sau tiếp nhận
+
+Đã thực sự rerun **job chỉ đọc hiện có**, không dispatch workflow ghi Meta: run `44219333231`, attempt 2, job `134645977393`, hoàn tất **14:29:54 ngày 18/11/2026 (giờ Việt Nam)**. Canary dùng commit gốc `7522eea243a4282bc755d597cb34a8d6c89e4473`; do đó không được coi là FULL DRY RUN của commit mới. Kết quả:
+
+- Canary PASS; service account đọc được các tài nguyên được duyệt, A/B đều canEdit.
+- Đọc đủ **16/16 file, 182 tab**, lỗi vận chuyển `errors=[]`.
+- Phát hiện **2.037 ô lỗi công thức nguồn**. Đây là số mới; không dùng số 2.045 của lần trước để kết luận hiện trạng. Chưa phân loại theo consumer của runner private trong lần này.
+- Meta Marketing API trực tiếp: **3 tài khoản, 3.838 dòng**, kỳ 01/01–18/11/2026, snapshot SHA256 `5f187e0a1275ac413c30ee060de76c5db6f297a6a27cdbc8ca1a31fbd59b3968`.
+- `production_writes=0`, `release_state=BLOCKED`, `full_v24_e2e=NOT_RUN_DATA_RELEASE_GATES_REMAIN`. Canary không giữ bản dữ liệu raw sau job; không phải bộ dữ liệu để giả lập một lần FULL DRY RUN mới.
+
+Bản sửa `4693178ba26a086814504dc814da1050193066f9` có **159 tests PASS** tại workspace và CI push `44258957234`, PR `44258963991`. Hai CI mới không chạy bước canary và không thay thế bằng chứng kiểm thử trực tiếp ở trên.
